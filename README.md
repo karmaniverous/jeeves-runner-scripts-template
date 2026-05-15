@@ -1,4 +1,4 @@
-# jeeves-runner-scripts
+# jeeves-scripts
 
 TypeScript runner scripts for [jeeves-runner](https://github.com/karmaniverous/jeeves-runner). This repo provides a structured home for your scheduled jobs: shared infrastructure in `src/lib/`, domain scripts organized by folder, and a full quality-gate pipeline.
 
