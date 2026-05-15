@@ -1,11 +1,11 @@
+#!/usr/bin/env tsx
 /**
  * Example runner script — demonstrates the standard pattern.
  * Delete this file when you start building real scripts.
  */
 
 import { runScript } from '@karmaniverous/jeeves';
-
-import { getRunnerClient } from '../lib/runner-client.js';
+import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
 // Every script is wrapped in runScript() for crash handling.
 runScript('hello', () => {
@@ -13,11 +13,11 @@ runScript('hello', () => {
 
   // Read a state value (returns undefined if not set).
   const lastRun = client.getState('example', 'lastRun');
-  console.log(`Last run: ${lastRun ?? 'never'}`);
+  console.log('Last run: ' + (lastRun ?? 'never'));
 
   // Write a state value.
   client.setState('example', 'lastRun', new Date().toISOString());
-  console.log('Hello from jeeves-runner-scripts!');
+  console.log('Hello from jeeves-scripts!');
 
   client.close();
 });
