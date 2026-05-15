@@ -11,3 +11,9 @@ node_modules/
 .stan/system/facet.state.json
 .stan/system/.docs.meta.json
 .stan/imports/
+
+# Backup files
+*.backup-*
+
+# Crash logs
+_crash.log

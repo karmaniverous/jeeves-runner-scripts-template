@@ -5,7 +5,7 @@
  * This file exists for TypeScript tooling and knip's entry resolution.
  *
  * Repo structure:
- *   src/lib/       — shared infrastructure (constants, runner client)
+ *   src/lib/       — shared infrastructure (constants)
  *   src/{domain}/  — scripts organized by domain (e.g. src/github/, src/email/)
  *   src/example/   — sample script (delete when you start building)
  *
