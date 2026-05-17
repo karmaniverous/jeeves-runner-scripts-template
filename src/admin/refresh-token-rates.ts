@@ -1,0 +1,69 @@
+#!/usr/bin/env tsx
+/**
+ * @module refresh-token-rates
+ *
+ * Dispatcher: Refresh token rate card.
+ *
+ * Spawns an LLM session to fetch current published API pricing
+ * from provider pricing pages and update the rate card config.
+ * Runs daily and can be triggered on-demand by the collector
+ * when it encounters an unknown model.
+ *
+ * Config dependencies: TOKEN_RATES_PATH, GATEWAY_HOST, GATEWAY_PORT
+ * from constants.ts.
+ */
+
+import { runScript } from '@karmaniverous/jeeves';
+import { runDispatcher } from '@karmaniverous/jeeves-runner';
+
+import { SPAWN_WORKER_PATH, TOKEN_RATES_PATH } from '../lib/constants.js';
+
+const JOB_ID = 'refresh-token-rates';
+
+const TASK = `You are updating the token pricing rate card.
+
+Read the current rate card at ${TOKEN_RATES_PATH}.
+
+For EACH model in the rate card, verify the rates against the provider's official pricing page:
+- Anthropic models: https://platform.claude.com/docs/en/about-claude/pricing
+- OpenAI models: https://developers.openai.com/api/docs/pricing
+- Google models: https://ai.google.dev/gemini-api/docs/pricing
+- xAI models: https://docs.x.ai/docs/models#models-and-pricing (or search "xAI Grok API pricing")
+
+Use web_fetch to read each pricing page. Extract the per-MTok (per million token) rates for:
+- input (base input tokens)
+- output (output tokens)
+- cacheRead (cache hits / prompt cache reads)
+- cacheWrite (cache writes, if applicable — use the 5-minute TTL tier for Anthropic)
+
+If cacheRead/cacheWrite are not offered by the provider, set them to 0.
+
+Also check if any NEW models have appeared on these pricing pages that aren't in the rate card yet. Common patterns:
+- A new Claude version (e.g. claude-opus-4-7, claude-sonnet-4-7)
+- A new GPT version (e.g. gpt-5.5)
+- A new Gemini version
+- A new Grok version
+
+For delivery-mirror models (openclaw/delivery-mirror, clawdbot/delivery-mirror), keep rates at 0 — these are internal routing, not billed.
+
+After verification:
+1. Update ${TOKEN_RATES_PATH} with any changes
+2. Update the "updatedAt" timestamp to now
+3. Update the "source" field to describe what was verified
+4. Report a summary of what changed (or "no changes needed")
+
+IMPORTANT: Only update rates you can verify from official pricing pages. If a pricing page is unavailable or you can't find rates for a model, leave that model's rates unchanged and note it in your summary.
+
+Do NOT add models speculatively — only add models that appear on official pricing pages AND are actually used by this installation (check the model keys already in the rate card for the naming pattern).`;
+
+runScript('admin/refresh-token-rates', () => {
+  runDispatcher(
+    TASK,
+    {
+      jobId: JOB_ID,
+      thinking: 'low',
+      timeout: 300,
+    },
+    SPAWN_WORKER_PATH,
+  );
+});

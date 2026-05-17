@@ -1,0 +1,14 @@
+[
+  {
+    "id": "calendar-poll",
+    "name": "Calendar Poll",
+    "script": "src/calendar/poll.ts",
+    "schedule": { "freq": "minutely", "interval": 17 },
+    "description": "Poll Google Calendar events for configured accounts and write individual JSON files with change detection.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "calendar",
+    "prerequisite": "Google Calendar OAuth via gog + calendar accounts in pipeline-config.json"
+  }
+]
