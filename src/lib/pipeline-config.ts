@@ -1,0 +1,140 @@
+/**
+ * @module pipeline-config
+ *
+ * Zod-validated pipeline configuration loader. Reads the config file
+ * specified by PIPELINE_CONFIG_PATH in constants.ts, validates the
+ * schema, and provides typed accessors.
+ *
+ * The config file controls which email accounts to poll, calendar sync
+ * settings, domain-to-bucket routing for email classification, email
+ * pipeline feature flags, and named refs for external service IDs
+ * (Notion databases, Slack channels, etc.).
+ *
+ * On jeeves-tools-managed instances, this file is rendered by the
+ * `configure` command. On standalone instances, create it manually —
+ * see PipelineConfigSchema below for required fields.
+ *
+ * Config dependencies: PIPELINE_CONFIG_PATH from constants.ts.
+ */
+
+import fs from 'node:fs';
+
+import { z } from 'zod';
+
+import { PIPELINE_CONFIG_PATH } from './constants.js';
+
+// ── Zod schemas ─────────────────────────────────────────────────────
+
+const CalendarConfigSchema = z.union([
+  z.object({ tokenFile: z.string() }),
+  z.object({ serviceAccount: z.literal('auto') }),
+]);
+
+const AccountSchema = z.object({
+  email: z.string(),
+  calendar: CalendarConfigSchema.optional(),
+  emailPolling: z.boolean(),
+});
+
+const DomainEntrySchema = z.object({
+  pattern: z.string(),
+  bucket: z.string(),
+});
+
+const BucketsSchema = z.object({
+  domains: z.array(DomainEntrySchema),
+  priority: z.array(z.string()),
+});
+
+const ReceiptConfigSchema = z.object({
+  forwardJGS: z.boolean(),
+  sparkReceiptsForwardTo: z.string(),
+});
+
+const DigestConfigSchema = z.object({
+  slackChannelId: z.string(),
+});
+
+const EmailConfigSchema = z.object({
+  reportOnly: z.boolean(),
+  receipt: ReceiptConfigSchema,
+  digest: DigestConfigSchema,
+});
+
+const PipelineConfigSchema = z.object({
+  accounts: z.array(AccountSchema),
+  buckets: BucketsSchema,
+  refs: z.record(z.string(), z.string()),
+  emailConfig: EmailConfigSchema,
+});
+
+// ── Derived types ───────────────────────────────────────────────────
+
+export type PipelineConfig = z.infer<typeof PipelineConfigSchema>;
+export type AccountConfig = z.infer<typeof AccountSchema>;
+export type BucketsConfig = z.infer<typeof BucketsSchema>;
+export type EmailConfig = z.infer<typeof EmailConfigSchema>;
+
+// ── Cached loader ───────────────────────────────────────────────────
+
+let _config: PipelineConfig | null = null;
+let _bucketPriorityCache: Record<string, number> | null = null;
+
+export function loadPipelineConfig(): PipelineConfig {
+  if (!_config) {
+    const raw = fs.readFileSync(PIPELINE_CONFIG_PATH, 'utf8');
+    _config = PipelineConfigSchema.parse(JSON.parse(raw));
+  }
+  return _config;
+}
+
+/** Reset cached config (for testing). */
+export function resetPipelineConfig(): void {
+  _config = null;
+  _bucketPriorityCache = null;
+}
+
+// ── Accessors ───────────────────────────────────────────────────────
+
+/** Get a ref value by dotted key, throws if missing. */
+export function getRef(key: string): string {
+  const config = loadPipelineConfig();
+  if (!Object.prototype.hasOwnProperty.call(config.refs, key)) {
+    throw new Error(`Missing pipeline config ref: ${key}`);
+  }
+  return config.refs[key];
+}
+
+/** Accounts that have calendar config. */
+export function getCalendarAccounts(): AccountConfig[] {
+  return loadPipelineConfig().accounts.filter((a) => a.calendar);
+}
+
+/** Email addresses of accounts with emailPolling enabled. */
+export function getEmailAccounts(): string[] {
+  return loadPipelineConfig()
+    .accounts.filter((a) => a.emailPolling)
+    .map((a) => a.email);
+}
+
+/** Match a domain to a bucket name, or null if no match. */
+export function getBucketForDomain(domain: string): string | null {
+  const d = domain.toLowerCase();
+  for (const entry of loadPipelineConfig().buckets.domains) {
+    if (entry.pattern.toLowerCase() === d) return entry.bucket;
+  }
+  return null;
+}
+
+/** Bucket name → priority index. Lower = higher priority. */
+export function getBucketPriority(): Record<string, number> {
+  if (!_bucketPriorityCache) {
+    const priority = loadPipelineConfig().buckets.priority;
+    const result: Record<string, number> = {};
+    for (let i = 0; i < priority.length; i++) {
+      result[priority[i]] = i;
+    }
+    _bucketPriorityCache = result;
+  }
+  return _bucketPriorityCache;
+}

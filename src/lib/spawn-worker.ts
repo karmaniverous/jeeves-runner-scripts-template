@@ -1,0 +1,640 @@
+#!/usr/bin/env tsx
+/**
+ * @module spawn-worker
+ *
+ * Spawn Worker — invoke sessions_spawn via Gateway HTTP API.
+ *
+ * Usage: echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>] [--timeout=<seconds>]
+ *
+ * Spawns a worker session and waits for completion. On completion, fetches
+ * session info to get token usage and outputs a JSON summary line for
+ * async-wrapper to parse.
+ *
+ * Output format (last line of stdout):
+ *   WORKER_RESULT:{"sessionKey":"...","tokens":12345,"durationMs":123000}
+ */
+
+import fs from 'node:fs';
+import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+
+// ── Inlined from gateway-client.ts ─────────────────────────────────
+// This file is executed by jeeves-runner dispatchSession() with plain
+// node (not tsx), which cannot resolve .js → .ts imports.
+// Constants and gateway helpers are inlined here to avoid import resolution issues.
+
+const GATEWAY_HOST = '127.0.0.1';
+const GATEWAY_PORT = 18789;
+
+interface GatewayInvokeResult {
+  ok?: boolean;
+  result?: Record<string, unknown>;
+  error?: { message?: string };
+}
+
+function loadGatewayToken(): string | null {
+  if (process.env['CLAWDBOT_GATEWAY_TOKEN']) {
+    return process.env['CLAWDBOT_GATEWAY_TOKEN'];
+  }
+
+  const home = process.env['USERPROFILE'] ?? os.homedir();
+  const configPaths = [
+    path.join(home, '.openclaw', 'openclaw.json'),
+    path.join(home, '.clawdbot', 'clawdbot.json'),
+  ];
+
+  for (const configPath of configPaths) {
+    try {
+      const raw: unknown = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (
+        raw &&
+        typeof raw === 'object' &&
+        'gateway' in raw &&
+        raw.gateway &&
+        typeof raw.gateway === 'object' &&
+        'auth' in raw.gateway &&
+        raw.gateway.auth &&
+        typeof raw.gateway.auth === 'object' &&
+        'token' in raw.gateway.auth &&
+        typeof raw.gateway.auth.token === 'string'
+      ) {
+        return raw.gateway.auth.token;
+      }
+    } catch {
+      /* continue */
+    }
+  }
+
+  return null;
+}
+
+function sharedGatewayInvoke(
+  tool: string,
+  args: Record<string, unknown>,
+  options?: { sessionKey?: string },
+): Promise<unknown> {
+  const token = loadGatewayToken();
+  if (!token) throw new Error('No gateway token found');
+
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      tool,
+      args,
+      ...(options?.sessionKey ? { sessionKey: options.sessionKey } : {}),
+    });
+    const req = http.request(
+      {
+        hostname: GATEWAY_HOST,
+        port: GATEWAY_PORT,
+        path: '/tools/invoke',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(body),
+          Authorization: `Bearer ${token}`,
+        },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => {
+          const resp = Buffer.concat(chunks).toString('utf8');
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(resp);
+          } catch {
+            reject(new Error(`Gateway invalid JSON: ${resp}`));
+            return;
+          }
+          const typed = parsed as GatewayInvokeResult;
+          if (res.statusCode === 200 && typed.ok) {
+            resolve(typed.result);
+            return;
+          }
+          reject(new Error(typed.error?.message ?? resp));
+        });
+      },
+    );
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// ── End inlined gateway-client ─────────────────────────────────────
+
+/** If the last message is a toolResult and hasn't updated in this long, treat as completed. */
+const STALE_THRESHOLD_MS = 60_000;
+
+/** Maximum number of spawn retry attempts before giving up. */
+export const SPAWN_MAX_RETRIES = 3;
+/** Base backoff delay in ms between spawn retries (doubles each attempt). */
+export const SPAWN_BACKOFF_BASE_MS = 30_000;
+
+// ── Types ──────────────────────────────────────────────────────────────
+
+export interface ParsedArgs {
+  [key: string]: string;
+}
+
+interface GatewayResponse {
+  ok?: boolean;
+  result?: GatewayResult;
+  details?: GatewayResult;
+  sessions?: GatewaySession[];
+  error?: { message?: string };
+}
+
+interface GatewayResult {
+  details?: GatewayDetails;
+  messages?: GatewayMessage[];
+  sessions?: GatewaySession[];
+}
+
+interface GatewayDetails {
+  sessions?: GatewaySession[];
+  messages?: GatewayMessage[];
+  childSessionKey?: string;
+  sessionKey?: string;
+}
+
+interface GatewaySession {
+  key: string;
+  totalTokens?: number;
+  transcriptPath?: string;
+  model?: string;
+}
+
+interface GatewayMessage {
+  role: string;
+  stopReason?: string;
+  timestamp?: number;
+}
+
+export interface SessionStatus {
+  completed: boolean;
+}
+
+export interface SessionInfo {
+  found: boolean;
+  totalTokens?: number;
+  model?: string;
+}
+
+interface WorkerCompletion {
+  success: boolean;
+  durationMs: number;
+  tokens: number;
+  model?: string;
+}
+
+interface SpawnArgs {
+  task: string;
+  label: string;
+  runTimeoutSeconds: number;
+  thread: boolean;
+  thinking?: string;
+}
+
+// ── Pure helpers ───────────────────────────────────────────────────────
+
+export function parseArgs(argv: string[]): ParsedArgs {
+  const args: ParsedArgs = {};
+  for (const arg of argv) {
+    const match = /^--([^=]+)=(.*)$/.exec(arg);
+    if (match) {
+      args[match[1]] = match[2];
+    }
+  }
+  return args;
+}
+
+/**
+ * Determine whether a session is completed based on its last few messages.
+ *
+ * - If the last message is an assistant turn with a terminal stopReason
+ *   (anything except "toolUse" or "error"), the session is completed.
+ * - If the last message is a toolResult older than {@link STALE_THRESHOLD_MS},
+ *   the LLM likely never produced a final turn — treat as completed.
+ */
+export function isSessionCompleted(
+  messages: GatewayMessage[],
+  nowMs: number = Date.now(),
+  staleThresholdMs: number = STALE_THRESHOLD_MS,
+): SessionStatus {
+  if (messages.length === 0) return { completed: false };
+
+  const lastMsg = messages[messages.length - 1];
+
+  if (
+    lastMsg.role === 'assistant' &&
+    lastMsg.stopReason &&
+    lastMsg.stopReason !== 'toolUse' &&
+    lastMsg.stopReason !== 'error'
+  ) {
+    return { completed: true };
+  }
+
+  if (lastMsg.role === 'toolResult' && lastMsg.timestamp) {
+    const age = nowMs - lastMsg.timestamp;
+    if (age > staleThresholdMs) {
+      console.log(
+        `[${new Date().toISOString()}] Session stale: last toolResult was ${String(Math.round(age / 1000))}s ago — treating as completed`,
+      );
+      return { completed: true };
+    }
+  }
+
+  return { completed: false };
+}
+
+/**
+ * Sum totalTokens from each JSON-Lines entry in a transcript file.
+ */
+export function getTokensFromTranscript(transcriptPath: string): number {
+  try {
+    if (!fs.existsSync(transcriptPath)) return 0;
+
+    const lines = fs
+      .readFileSync(transcriptPath, 'utf8')
+      .split('\n')
+      .filter((l) => l.trim());
+    let total = 0;
+
+    for (const line of lines) {
+      try {
+        const entry: unknown = JSON.parse(line);
+        if (
+          entry &&
+          typeof entry === 'object' &&
+          'message' in entry &&
+          entry.message &&
+          typeof entry.message === 'object' &&
+          'usage' in entry.message &&
+          entry.message.usage &&
+          typeof entry.message.usage === 'object' &&
+          'totalTokens' in entry.message.usage &&
+          typeof entry.message.usage.totalTokens === 'number'
+        ) {
+          total += entry.message.usage.totalTokens;
+        }
+      } catch {
+        /* skip non-JSON lines */
+      }
+    }
+
+    return total;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[${new Date().toISOString()}] Failed to read transcript: ${msg}`,
+    );
+    return 0;
+  }
+}
+
+/**
+ * Parse WORKER_RESULT lines from spawn-worker output.
+ */
+export function parseResultLine(line: string): {
+  sessionKey: string;
+  tokens: number;
+  durationMs: number;
+  model?: string;
+} | null {
+  const prefix = 'WORKER_RESULT:';
+  if (!line.startsWith(prefix)) return null;
+  try {
+    const parsed: unknown = JSON.parse(line.slice(prefix.length));
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'sessionKey' in parsed &&
+      'tokens' in parsed &&
+      'durationMs' in parsed
+    ) {
+      const r = parsed as {
+        sessionKey: string;
+        tokens: number;
+        durationMs: number;
+        model?: string;
+      };
+      return r;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// ── Gateway I/O ───────────────────────────────────────────────────────
+
+async function invokeGateway(
+  tool: string,
+  toolArgs: Record<string, unknown>,
+): Promise<GatewayResponse> {
+  const result = await sharedGatewayInvoke(tool, toolArgs);
+  return { ok: true, result: result as GatewayResult };
+}
+
+// ── Session helpers ───────────────────────────────────────────────────
+
+function getSessionsDir(): string {
+  const configCandidates = [
+    path.join('D:', '.clawdbot'),
+    path.join(process.env['USERPROFILE'] ?? '', '.clawdbot'),
+  ];
+  for (const dir of configCandidates) {
+    const sessDir = path.join(dir, 'agents', 'main', 'sessions');
+    if (fs.existsSync(sessDir)) return sessDir;
+  }
+  return path.join(
+    process.env['USERPROFILE'] ?? '',
+    '.clawdbot',
+    'agents',
+    'main',
+    'sessions',
+  );
+}
+
+async function getSessionInfo(
+  sessionKey: string,
+  activeMinutes = 120,
+): Promise<SessionInfo> {
+  try {
+    const result = await invokeGateway('sessions_list', {
+      activeMinutes,
+      limit: 100,
+    });
+
+    const sessions: GatewaySession[] =
+      result.result?.details?.sessions ??
+      result.result?.sessions ??
+      result.sessions ??
+      [];
+    const session = sessions.find((s) => s.key === sessionKey);
+
+    if (!session) {
+      console.log(
+        `[${new Date().toISOString()}] Session not found in ${String(sessions.length)} sessions`,
+      );
+      return { found: false };
+    }
+
+    let totalTokens = session.totalTokens ?? 0;
+    if (session.transcriptPath) {
+      const fullPath = path.isAbsolute(session.transcriptPath)
+        ? session.transcriptPath
+        : path.join(getSessionsDir(), session.transcriptPath);
+      const transcriptTokens = getTokensFromTranscript(fullPath);
+      if (transcriptTokens > 0) totalTokens = transcriptTokens;
+    }
+
+    console.log(
+      `[${new Date().toISOString()}] Session found: totalTokens=${String(totalTokens)}, model=${session.model ?? 'unknown'}`,
+    );
+    return { found: true, totalTokens, model: session.model };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(
+      `[${new Date().toISOString()}] Failed to get session info: ${msg}`,
+    );
+    return { found: false };
+  }
+}
+
+async function checkSessionCompleted(
+  sessionKey: string,
+): Promise<SessionStatus> {
+  try {
+    const result = await invokeGateway('sessions_history', {
+      sessionKey,
+      limit: 3,
+      includeTools: true,
+    });
+
+    const messages: GatewayMessage[] =
+      result.result?.details?.messages ?? result.result?.messages ?? [];
+
+    return isSessionCompleted(messages);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[${new Date().toISOString()}] History check failed: ${msg}`);
+    return { completed: false };
+  }
+}
+
+async function waitForWorkerCompletion(
+  sessionKey: string,
+  timeoutSeconds: number,
+  startTime: number,
+): Promise<WorkerCompletion> {
+  const timeoutMs = timeoutSeconds * 1000;
+  const pollInterval = 5000;
+  const activeMinutes = Math.max(10, Math.ceil(timeoutSeconds / 60));
+
+  // Initial delay to let the session start
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  for (;;) {
+    if (Date.now() - startTime > timeoutMs) {
+      throw new Error(`Worker timeout after ${String(timeoutSeconds)}s`);
+    }
+
+    try {
+      const status = await checkSessionCompleted(sessionKey);
+
+      if (status.completed) {
+        const durationMs = Date.now() - startTime;
+        console.log(
+          `[${new Date().toISOString()}] Session completed, fetching token count...`,
+        );
+
+        // Small delay to let transcript flush
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const sessionInfo = await getSessionInfo(sessionKey, activeMinutes);
+        console.log(
+          `[${new Date().toISOString()}] Session info: found=${String(sessionInfo.found)} tokens=${String(sessionInfo.totalTokens ?? 0)}`,
+        );
+
+        return {
+          success: true,
+          durationMs,
+          tokens: sessionInfo.totalTokens ?? 0,
+          model: sessionInfo.model,
+        };
+      }
+
+      console.log(`[${new Date().toISOString()}] Session still running...`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[${new Date().toISOString()}] Poll failed: ${msg}`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
+  }
+}
+
+// ── Spawn with retry ──────────────────────────────────────────────────
+
+async function spawnWithRetry(
+  spawnArgs: SpawnArgs,
+): Promise<{ result: GatewayResponse; sessionKey: string }> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt < SPAWN_MAX_RETRIES; attempt++) {
+    try {
+      const result = await invokeGateway(
+        'sessions_spawn',
+        spawnArgs as unknown as Record<string, unknown>,
+      );
+
+      // Check for gateway timeout in the response body text
+      const resultText = JSON.stringify(result);
+      if (/gateway timeout/i.test(resultText)) {
+        const waitMs = SPAWN_BACKOFF_BASE_MS * 2 ** attempt;
+        console.log(
+          `[${new Date().toISOString()}] Spawn attempt ${String(attempt + 1)}/${String(SPAWN_MAX_RETRIES)} failed: gateway timeout in response. Retrying in ${String(waitMs / 1000)}s...`,
+        );
+        lastError = new Error('gateway timeout in response body');
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        continue;
+      }
+
+      const spawnResult = result.result?.details ?? result.details ?? result;
+      const sessionKey =
+        (spawnResult as GatewayDetails).childSessionKey ??
+        (spawnResult as GatewayDetails).sessionKey;
+
+      if (!sessionKey) {
+        throw new Error(
+          `No sessionKey in spawn result: ${JSON.stringify(result).slice(0, 500)}`,
+        );
+      }
+
+      return { result, sessionKey };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      lastError = err instanceof Error ? err : new Error(msg);
+
+      if (/timeout/i.test(msg) && attempt < SPAWN_MAX_RETRIES - 1) {
+        const waitMs = SPAWN_BACKOFF_BASE_MS * 2 ** attempt;
+        console.log(
+          `[${new Date().toISOString()}] Spawn attempt ${String(attempt + 1)}/${String(SPAWN_MAX_RETRIES)} failed: ${msg}. Retrying in ${String(waitMs / 1000)}s...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        continue;
+      }
+
+      throw lastError;
+    }
+  }
+
+  throw lastError ?? new Error('Spawn failed after all retries');
+}
+
+// ── CLI entry point ───────────────────────────────────────────────────
+
+function readStdin(): Promise<string> {
+  return new Promise((resolve) => {
+    let data = '';
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', (chunk: string) => (data += chunk));
+    process.stdin.on('end', () => {
+      resolve(data.trim());
+    });
+    if (process.stdin.isTTY) {
+      resolve('');
+    }
+  });
+}
+
+async function main(): Promise<void> {
+  const args = parseArgs(process.argv.slice(2));
+
+  if (!args['job-id']) {
+    console.error(
+      'Usage: echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>] [--timeout=<seconds>]',
+    );
+    process.exit(1);
+  }
+
+  const taskInput = await readStdin();
+  if (!taskInput) {
+    console.error('Error: No task provided on stdin');
+    process.exit(1);
+  }
+
+  const jobId = args['job-id'];
+  const startTime = Date.now();
+
+  const spawnArgs: SpawnArgs = {
+    task: taskInput,
+    label: args['label'] ?? `worker-${jobId.slice(0, 8)}`,
+    runTimeoutSeconds: parseInt(args['timeout'] ?? '300', 10),
+    thread: false,
+  };
+
+  if (args['thinking']) {
+    spawnArgs.thinking = args['thinking'];
+  }
+
+  console.log(
+    `[${new Date().toISOString()}] Spawning worker for job ${jobId.slice(0, 8)}`,
+  );
+  console.log(`  Label: ${spawnArgs.label}`);
+  console.log(`  Timeout: ${String(spawnArgs.runTimeoutSeconds)}s`);
+
+  try {
+    const { result, sessionKey } = await spawnWithRetry(spawnArgs);
+    console.log(`[${new Date().toISOString()}] Worker spawned successfully`);
+    console.log(
+      `[${new Date().toISOString()}] Raw spawn result: ${JSON.stringify(result).slice(0, 500)}`,
+    );
+
+    console.log(
+      `[${new Date().toISOString()}] Waiting for worker to complete (session: ${sessionKey})...`,
+    );
+
+    const completion = await waitForWorkerCompletion(
+      sessionKey,
+      spawnArgs.runTimeoutSeconds,
+      startTime,
+    );
+
+    if (!completion.success) {
+      console.error(`[${new Date().toISOString()}] Worker failed`);
+      process.exit(1);
+    }
+
+    console.log(`[${new Date().toISOString()}] Worker completed successfully`);
+    console.log(`  Duration: ${(completion.durationMs / 1000).toFixed(1)}s`);
+    console.log(`  Tokens: ${String(completion.tokens)}`);
+
+    console.log(
+      `WORKER_RESULT:${JSON.stringify({
+        sessionKey,
+        tokens: completion.tokens,
+        durationMs: completion.durationMs,
+        model: completion.model,
+      })}`,
+    );
+
+    process.exit(0);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[${new Date().toISOString()}] Worker failed: ${msg}`);
+    process.exit(1);
+  }
+}
+
+// Run main when executed directly (not imported for testing)
+const isDirectExecution =
+  process.argv[1] &&
+  (process.argv[1].endsWith('spawn-worker.ts') ||
+    process.argv[1].endsWith('spawn-worker.js'));
+
+if (isDirectExecution) {
+  main().catch(() => process.exit(1));
+}

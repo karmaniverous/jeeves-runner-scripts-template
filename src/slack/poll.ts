@@ -1,0 +1,434 @@
+#!/usr/bin/env tsx
+/**
+ * @module slack/poll
+ *
+ * Polls Slack channels for new messages across configured workspaces.
+ *
+ * Called by jeeves-runner on a schedule. Auto-discovers channels the bot
+ * has joined, fetches history and thread replies via the Slack API, and
+ * writes individual JSON files per message to silo-routed directories.
+ * Depends on JGS_WORKSPACE, SLACK_DOMAIN_DIR, and
+ * SLACK_WORKSPACE_CACHE_PATH from constants for workspace routing.
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+
+import {
+  getChannelWorkspace,
+  runScript,
+  saveCache,
+} from '@karmaniverous/jeeves';
+
+import {
+  JGS_WORKSPACE,
+  SLACK_DOMAIN_DIR,
+  SLACK_WORKSPACE_CACHE_PATH,
+} from '../lib/constants.js';
+import { getBasePathForSlackWorkspace } from '../lib/silo-router.js';
+import {
+  discoverChannels,
+  fetchHistory,
+  fetchReplies,
+  slackApi,
+  type SlackMessage,
+  sleep,
+} from './lib/slack-api.js';
+
+const CHANNELS_FILE = path.join(SLACK_DOMAIN_DIR, '.domain', 'channels.json');
+const USERS_FILE = path.join(SLACK_DOMAIN_DIR, '.domain', 'users.json');
+const RATE_LIMIT_MS = 1200;
+
+interface ChannelInfo {
+  name: string;
+  type: string;
+  isPrivate?: boolean;
+  isArchived?: boolean;
+  lastTs: string;
+  metadata?: Record<string, unknown>;
+  isSlackConnect?: boolean;
+  sharedTeams?: string[];
+  participants?: string[];
+  _autoDiscovered?: string;
+  _account?: string;
+}
+
+interface OpenClawConfig {
+  channels?: {
+    slack?: {
+      botToken?: string;
+      accounts?: Record<string, { botToken?: string }>;
+    };
+  };
+}
+
+function getTokens(): Record<string, string> {
+  if (process.env.SLACK_BOT_TOKEN)
+    return { default: process.env.SLACK_BOT_TOKEN };
+
+  const home = process.env.USERPROFILE ?? process.env.HOME ?? '';
+  const primary = path.join(home, '.openclaw', 'openclaw.json');
+  const fallback = path.join(home, '.clawdbot', 'clawdbot.json');
+
+  const cfgPath = fs.existsSync(primary)
+    ? primary
+    : fs.existsSync(fallback)
+      ? fallback
+      : undefined;
+
+  if (!cfgPath) {
+    throw new Error(
+      `No Slack config file found. Searched:\n  - ${primary}\n  - ${fallback}`,
+    );
+  }
+
+  const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')) as OpenClawConfig;
+
+  const tokens: Record<string, string> = {};
+
+  // Multi-account layout: channels.slack.accounts.<name>.botToken
+  const accounts = cfg.channels?.slack?.accounts;
+  if (accounts) {
+    for (const [name, account] of Object.entries(accounts)) {
+      if (account.botToken) tokens[name] = account.botToken;
+    }
+  }
+
+  // Flat layout fallback: channels.slack.botToken
+  if (Object.keys(tokens).length === 0) {
+    const token = cfg.channels?.slack?.botToken;
+    if (token) tokens['default'] = token;
+  }
+
+  if (Object.keys(tokens).length === 0)
+    throw new Error('No Slack bot tokens found');
+  return tokens;
+}
+
+async function getTeamId(token: string): Promise<string> {
+  const resp = await slackApi('auth.test', {}, token);
+  if (!resp.team_id || typeof resp.team_id !== 'string') {
+    throw new Error(
+      `auth.test did not return a valid team_id (got ${JSON.stringify(resp.team_id)})`,
+    );
+  }
+  return resp.team_id;
+}
+
+async function resolveChannelToken(
+  channelId: string,
+  channelInfo: ChannelInfo,
+  tokensByAccount: Record<string, string>,
+  teamToAccount: Record<string, string>,
+): Promise<string> {
+  // 1. Explicit account tag from prior discovery or resolution
+  if (channelInfo._account && tokensByAccount[channelInfo._account]) {
+    return tokensByAccount[channelInfo._account];
+  }
+
+  // 2. Check sharedTeams metadata against known workspaces
+  if (channelInfo.sharedTeams) {
+    for (const teamId of channelInfo.sharedTeams) {
+      const account = teamToAccount[teamId];
+      if (account && tokensByAccount[account]) {
+        channelInfo._account = account;
+        return tokensByAccount[account];
+      }
+    }
+  }
+
+  // 3. Try getChannelWorkspace with each token until one resolves
+  let lastError: unknown;
+  for (const [account, token] of Object.entries(tokensByAccount)) {
+    try {
+      await sleep(RATE_LIMIT_MS);
+      const teamId = await getChannelWorkspace(channelId, token, {
+        cachePath: SLACK_WORKSPACE_CACHE_PATH,
+        defaultWorkspace: JGS_WORKSPACE,
+      });
+      const resolvedAccount = teamToAccount[teamId] ?? account;
+      channelInfo._account = resolvedAccount;
+      return tokensByAccount[resolvedAccount] ?? token;
+    } catch (err) {
+      lastError = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!/not_in_channel|channel_not_found|missing_scope/i.test(msg)) {
+        console.error(
+          `Unexpected error resolving channel ${channelId} with account "${account}": ${msg}`,
+        );
+      }
+      continue;
+    }
+  }
+
+  if (lastError instanceof Error) {
+    console.error(
+      `Could not resolve token for channel ${channelId}, falling back. Last error: ${lastError.message}`,
+    );
+  } else if (lastError) {
+    console.error(
+      `Could not resolve token for channel ${channelId}, falling back.`,
+    );
+  }
+
+  // 4. Fallback to default or first available token
+  return tokensByAccount['default'] ?? Object.values(tokensByAccount)[0];
+}
+
+function tsToDate(ts: string): string {
+  return new Date(parseFloat(ts) * 1000).toISOString();
+}
+
+function loadUsers(): Record<string, string> {
+  if (fs.existsSync(USERS_FILE)) {
+    return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8')) as Record<
+      string,
+      string
+    >;
+  }
+  return {};
+}
+
+function writeMessage(
+  channelDir: string,
+  channelId: string,
+  channelInfo: ChannelInfo,
+  msg: SlackMessage,
+  userMap: Record<string, string>,
+): boolean {
+  fs.mkdirSync(channelDir, { recursive: true });
+
+  const filePath = path.join(channelDir, `${msg.ts}.json`);
+  if (fs.existsSync(filePath)) return false;
+
+  const doc: Record<string, unknown> = {
+    ts: msg.ts,
+    channelId,
+    channelName: channelInfo.name,
+    channelType: channelInfo.type,
+    user: msg.user ?? msg.bot_id ?? 'unknown',
+    userName:
+      (msg.user ? userMap[msg.user] : undefined) ??
+      msg.username ??
+      msg.bot_id ??
+      'unknown',
+    text: msg.text ?? '',
+    date: tsToDate(msg.ts),
+    participants: channelInfo.participants,
+  };
+
+  if (msg.thread_ts && msg.thread_ts !== msg.ts) doc.threadTs = msg.thread_ts;
+  if (msg.reply_count) doc.replyCount = msg.reply_count;
+  if (msg.subtype) doc.subtype = msg.subtype;
+  if (msg.bot_id) doc.botId = msg.bot_id;
+  if (msg.files) doc.hasFiles = true;
+  if (msg.reactions)
+    doc.reactions = msg.reactions.map((r) => ({
+      name: r.name,
+      count: r.count,
+    }));
+
+  fs.writeFileSync(filePath, JSON.stringify(doc, null, 2), 'utf8');
+  return true;
+}
+
+async function resolveChannelDir(
+  channelId: string,
+  channelName: string,
+  token: string,
+): Promise<string> {
+  const teamId = await getChannelWorkspace(channelId, token, {
+    cachePath: SLACK_WORKSPACE_CACHE_PATH,
+    defaultWorkspace: JGS_WORKSPACE,
+  });
+  const basePath = getBasePathForSlackWorkspace(teamId);
+  const slackRoot = path.join(basePath, 'slack');
+  const targetDirName = `${channelName} (${channelId})`;
+  const targetDir = path.join(slackRoot, targetDirName);
+
+  if (fs.existsSync(slackRoot)) {
+    const suffix = `(${channelId})`;
+    for (const entry of fs.readdirSync(slackRoot)) {
+      if (entry.endsWith(suffix) && entry !== targetDirName) {
+        const oldDir = path.join(slackRoot, entry);
+        fs.renameSync(oldDir, targetDir);
+        console.log(`RENAMED: ${entry} -> ${targetDirName}`);
+        return targetDir;
+      }
+    }
+  }
+
+  return targetDir;
+}
+
+async function pollChannel(
+  channelId: string,
+  channelInfo: ChannelInfo,
+  token: string,
+  userMap: Record<string, string>,
+): Promise<number> {
+  const channelDir = await resolveChannelDir(
+    channelId,
+    channelInfo.name,
+    token,
+  );
+  const oldest = channelInfo.lastTs || '0';
+
+  const { messages, newestTs } = await fetchHistory(channelId, oldest, token);
+
+  let written = 0;
+  let maxTs = newestTs;
+
+  for (const msg of messages) {
+    if (writeMessage(channelDir, channelId, channelInfo, msg, userMap)) {
+      written++;
+    }
+    if (msg.ts > maxTs) maxTs = msg.ts;
+
+    // Fetch thread replies
+    if (msg.reply_count && msg.reply_count > 0) {
+      const replies = await fetchReplies(channelId, msg.ts, oldest, token);
+      for (const reply of replies) {
+        if (writeMessage(channelDir, channelId, channelInfo, reply, userMap)) {
+          written++;
+        }
+        if (reply.ts > maxTs) maxTs = reply.ts;
+      }
+    }
+  }
+
+  if (maxTs > oldest) {
+    channelInfo.lastTs = maxTs;
+  }
+
+  return written;
+}
+
+async function autoDiscover(
+  channels: Record<string, ChannelInfo>,
+  token: string,
+  account: string,
+): Promise<number> {
+  const allChannels = await discoverChannels(token);
+  let added = 0;
+
+  for (const ch of allChannels) {
+    if (!ch.is_member && !ch.is_im) continue;
+    if (ch.id in channels) continue;
+
+    const entry: ChannelInfo = {
+      name: ch.name ?? (ch.is_im ? `dm-${ch.user ?? ch.id}` : `mpim-${ch.id}`),
+      type: ch.is_im ? 'dm' : ch.is_mpim ? 'mpim' : 'channel',
+      isPrivate: ch.is_private ?? ch.is_im ?? false,
+      isArchived: false,
+      lastTs: '0',
+      metadata: {},
+      _autoDiscovered: new Date().toISOString(),
+      _account: account,
+    };
+    if (ch.is_ext_shared) entry.isSlackConnect = true;
+    if (ch.shared_team_ids && ch.shared_team_ids.length > 1)
+      entry.sharedTeams = ch.shared_team_ids;
+
+    channels[ch.id] = entry;
+    console.log(
+      `DISCOVERED: ${ch.id} -> ${entry.name} (${entry.type}, account: ${account}${entry.isSlackConnect ? ', Slack Connect' : ''})`,
+    );
+    added++;
+  }
+
+  return added;
+}
+
+async function main(): Promise<void> {
+  if (!fs.existsSync(SLACK_DOMAIN_DIR)) {
+    console.log('[skip] Slack domain directory not configured');
+    return;
+  }
+
+  const tokensByAccount = getTokens();
+  const accountNames = Object.keys(tokensByAccount);
+  console.log(
+    `Loaded ${String(accountNames.length)} Slack account(s): ${accountNames.join(', ')}`,
+  );
+
+  // Build teamId → account mapping via auth.test
+  const teamToAccount: Record<string, string> = {};
+  for (const [account, token] of Object.entries(tokensByAccount)) {
+    try {
+      await sleep(RATE_LIMIT_MS);
+      const teamId = await getTeamId(token);
+      teamToAccount[teamId] = account;
+      console.log(`Account "${account}" -> workspace ${teamId}`);
+    } catch (err) {
+      console.error(
+        `Failed auth.test for account "${account}" (skipping): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  const channels = JSON.parse(fs.readFileSync(CHANNELS_FILE, 'utf8')) as Record<
+    string,
+    ChannelInfo
+  >;
+  const userMap = loadUsers();
+
+  // Auto-discover new channels per token
+  let totalDiscovered = 0;
+  for (const [account, token] of Object.entries(tokensByAccount)) {
+    try {
+      const discovered = await autoDiscover(channels, token, account);
+      if (discovered > 0) {
+        console.log(
+          `Auto-discovered ${String(discovered)} new channel(s) for account "${account}"`,
+        );
+      }
+      totalDiscovered += discovered;
+    } catch (err) {
+      console.error(
+        `Channel discovery failed for account "${account}" (non-fatal): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+  if (totalDiscovered > 0) {
+    fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2), 'utf8');
+  }
+
+  let totalWritten = 0;
+
+  for (const [id, info] of Object.entries(channels)) {
+    await sleep(RATE_LIMIT_MS);
+    try {
+      const token = await resolveChannelToken(
+        id,
+        info,
+        tokensByAccount,
+        teamToAccount,
+      );
+      const written = await pollChannel(id, info, token, userMap);
+      if (written > 0) {
+        console.log(`${id} (${info.name}): ${String(written)} new`);
+        totalWritten += written;
+      }
+    } catch (err) {
+      console.error(
+        `ERROR ${id}: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
+  }
+
+  // Persist updated cursors and workspace cache
+  fs.writeFileSync(CHANNELS_FILE, JSON.stringify(channels, null, 2), 'utf8');
+  saveCache();
+
+  if (totalWritten > 0) {
+    console.log(`Total: ${String(totalWritten)} new messages`);
+  }
+}
+
+runScript('slack/poll', () => {
+  main().catch((err: unknown) => {
+    console.error('FATAL:', err);
+    process.exit(1);
+  });
+});

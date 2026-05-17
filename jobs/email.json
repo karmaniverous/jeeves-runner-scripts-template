@@ -1,0 +1,38 @@
+[
+  {
+    "id": "email-poll",
+    "name": "Email Poll",
+    "script": "src/email/poll.ts",
+    "schedule": { "freq": "minutely", "interval": 11 },
+    "description": "Poll Gmail accounts for new and updated threads, classify, and enqueue for download.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "email",
+    "prerequisite": "Gmail OAuth via gog"
+  },
+  {
+    "id": "email-download",
+    "name": "Email Download",
+    "script": "src/email/download.ts",
+    "schedule": { "freq": "minutely", "interval": 13 },
+    "description": "Dequeue threads from email-pending and download full message bodies from Gmail.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 600,
+    "enabled": true,
+    "domain": "email",
+    "prerequisite": "Gmail OAuth via gog"
+  },
+  {
+    "id": "email-drain-updates",
+    "name": "Email Drain Updates",
+    "script": "src/email/drain-updates.ts",
+    "schedule": { "freq": "minutely", "interval": 17 },
+    "description": "Drain the email-updates queue and apply label changes (add, remove, archive, trash) via Gmail API.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "email",
+    "prerequisite": "Gmail OAuth via gog"
+  }
+]
