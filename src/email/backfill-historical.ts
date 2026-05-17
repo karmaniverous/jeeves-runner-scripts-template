@@ -37,10 +37,7 @@ function parseArg(flag: string, fallback: string): string {
 
 function main(): void {
   const live = process.argv.includes('--live');
-  const accounts = parseArg(
-    '--accounts',
-    'jason@johngalt.id,jscroft@gmail.com',
-  ).split(',');
+  const accounts = parseArg('--accounts', '').split(',');
   const after = parseArg('--after', '2025/12/31');
   const before = parseArg('--before', '2026/02/09');
   const max = Number(parseArg('--max', '500'));

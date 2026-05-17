@@ -33,7 +33,7 @@ function main(): void {
       receipt: 0,
       junk: 0,
       VC: 0,
-      JGS: 0,
+      // Add org-specific buckets here, e.g. MyOrg: 0,
     };
 
     for (const account of accounts) {
@@ -59,7 +59,8 @@ function main(): void {
           labelsToApply.push('receipt');
         if (ts.junkCandidate && !applied['junk']) labelsToApply.push('junk');
         if (ts.bucket === 'VC' && !applied['VC']) labelsToApply.push('VC');
-        if (ts.bucket === 'JGS' && !applied['JGS']) labelsToApply.push('JGS');
+        // Add org-specific bucket label logic here, e.g.:
+        // if (ts.bucket === 'MyOrg' && !applied['MyOrg']) labelsToApply.push('MyOrg');
 
         if (labelsToApply.length === 0) continue;
 

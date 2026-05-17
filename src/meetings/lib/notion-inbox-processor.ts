@@ -4,8 +4,6 @@
  * Process a Notion Inbox meeting page: fetch metadata via Notion API,
  * extract content via browser, stage artifacts locally, create an archive
  * copy in Notion, and archive the inbox page.
- *
- * Ported from J:/config/processes/process-notion-inbox-meeting.js
  */
 
 import crypto from 'node:crypto';
