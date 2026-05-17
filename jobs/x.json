@@ -1,0 +1,74 @@
+[
+  {
+    "id": "x-poll-posts",
+    "name": "X Poll Posts",
+    "script": "src/x/poll-posts.ts",
+    "schedule": { "freq": "minutely", "interval": 17 },
+    "description": "Poll own posts via X API v2 (Owned Read) and enqueue to runner queue for drain.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "x",
+    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+  },
+  {
+    "id": "x-poll-mentions",
+    "name": "X Poll Mentions",
+    "script": "src/x/poll-mentions.ts",
+    "schedule": { "freq": "minutely", "interval": 19 },
+    "description": "Poll mentions via X API v2 (Owned Read) and enqueue to runner queue.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "x",
+    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+  },
+  {
+    "id": "x-poll-feed",
+    "name": "X Poll Feed",
+    "script": "src/x/poll-feed.ts",
+    "schedule": { "freq": "minutely", "interval": 23 },
+    "description": "Poll home timeline via X API v2 and write items directly to the content directory.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "x",
+    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+  },
+  {
+    "id": "x-poll-likes",
+    "name": "X Poll Likes",
+    "script": "src/x/poll-likes.ts",
+    "schedule": { "freq": "minutely", "interval": 29 },
+    "description": "Poll liked tweets via X API v2 (Owned Read) and enqueue to runner queue.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "x",
+    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+  },
+  {
+    "id": "x-poll-bookmarks",
+    "name": "X Poll Bookmarks",
+    "script": "src/x/poll-bookmarks.ts",
+    "schedule": { "freq": "minutely", "interval": 13 },
+    "description": "Poll bookmarks via X API v2 (Owned Read) and enqueue to runner queue.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "x",
+    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+  },
+  {
+    "id": "x-drain-queues",
+    "name": "X Drain Queues",
+    "script": "src/x/drain-queues.ts",
+    "schedule": { "freq": "minutely", "interval": 11 },
+    "description": "Dequeue polled X items from runner queues and write them to the content directory.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "x",
+    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+  }
+]

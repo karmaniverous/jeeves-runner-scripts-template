@@ -1,0 +1,14 @@
+[
+  {
+    "id": "sweep-orphaned-tmp",
+    "name": "Sweep Orphaned Tmp Files",
+    "script": "src/core/sweep-orphaned-tmp.ts",
+    "schedule": { "freq": "minutely", "interval": 59 },
+    "description": "Remove orphaned .tmp files left by crashed atomic write operations in workspace directories.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 120,
+    "enabled": true,
+    "domain": "core",
+    "prerequisite": null
+  }
+]
