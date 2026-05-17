@@ -3,9 +3,6 @@
  *
  * Extract meeting content (Summary, Notes, Transcript) from a Notion public
  * page using the Gateway browser tool.
- *
- * Ported from the browser-automation portion of
- * J:/config/processes/process-notion-inbox-meeting.js
  */
 
 import { gatewayInvoke, sleep, unwrapResult } from './gateway-client.js';

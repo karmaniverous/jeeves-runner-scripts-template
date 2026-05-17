@@ -47,7 +47,7 @@ const BucketsSchema = z.object({
 });
 
 const ReceiptConfigSchema = z.object({
-  forwardJGS: z.boolean(),
+  forwardToOwner: z.boolean(),
   sparkReceiptsForwardTo: z.string(),
 });
 

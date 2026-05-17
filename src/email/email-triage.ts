@@ -59,7 +59,7 @@ function extractDomains(to: string): string[] {
 }
 
 /**
- * Assign an org bucket (e.g. VC, JGS) based on account domain, TO-domain
+ * Assign an org bucket (e.g. VC, Sales) based on account domain, TO-domain
  * priority, or content matching. Returns null if no bucket matches.
  */
 export function classifyBucket(

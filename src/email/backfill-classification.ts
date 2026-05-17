@@ -53,7 +53,7 @@ function main(): void {
       receipt: 0,
       junk: 0,
       VC: 0,
-      JGS: 0,
+      // Add org-specific buckets here, e.g. MyOrg: 0,
       Tribify: 0,
       Personal: 0,
     };

@@ -7,7 +7,7 @@
  * Called by jeeves-runner on a schedule. Auto-discovers channels the bot
  * has joined, fetches history and thread replies via the Slack API, and
  * writes individual JSON files per message to silo-routed directories.
- * Depends on JGS_WORKSPACE, SLACK_DOMAIN_DIR, and
+ * Depends on PRIMARY_WORKSPACE, SLACK_DOMAIN_DIR, and
  * SLACK_WORKSPACE_CACHE_PATH from constants for workspace routing.
  */
 
@@ -21,7 +21,7 @@ import {
 } from '@karmaniverous/jeeves';
 
 import {
-  JGS_WORKSPACE,
+  PRIMARY_WORKSPACE,
   SLACK_DOMAIN_DIR,
   SLACK_WORKSPACE_CACHE_PATH,
 } from '../lib/constants.js';
@@ -144,7 +144,7 @@ async function resolveChannelToken(
       await sleep(RATE_LIMIT_MS);
       const teamId = await getChannelWorkspace(channelId, token, {
         cachePath: SLACK_WORKSPACE_CACHE_PATH,
-        defaultWorkspace: JGS_WORKSPACE,
+        defaultWorkspace: PRIMARY_WORKSPACE,
       });
       const resolvedAccount = teamToAccount[teamId] ?? account;
       channelInfo._account = resolvedAccount;
@@ -239,7 +239,7 @@ async function resolveChannelDir(
 ): Promise<string> {
   const teamId = await getChannelWorkspace(channelId, token, {
     cachePath: SLACK_WORKSPACE_CACHE_PATH,
-    defaultWorkspace: JGS_WORKSPACE,
+    defaultWorkspace: PRIMARY_WORKSPACE,
   });
   const basePath = getBasePathForSlackWorkspace(teamId);
   const slackRoot = path.join(basePath, 'slack');

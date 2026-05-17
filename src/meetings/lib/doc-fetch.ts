@@ -3,8 +3,6 @@
  *
  * Fetch Google Doc transcripts for meetings that have a `gemini_link.txt`
  * but no `transcript.txt`. Uses the gog CLI binary to export doc content.
- *
- * Ported from J:/config/processes/doc-fetch-v2.js
  */
 
 import cp from 'node:child_process';

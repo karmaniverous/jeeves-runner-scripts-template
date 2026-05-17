@@ -160,7 +160,7 @@ export const SLACK_DOMAIN_DIR = path.join(CONTENT_DIR, 'slack');
 /**
  * Slack workspace team ID for the primary workspace being indexed.
  */
-export const JGS_WORKSPACE = '';
+export const PRIMARY_WORKSPACE = '';
 
 /**
  * Path to cached Slack channel-to-workspace mapping. Used by the

@@ -6,8 +6,6 @@
  * Scans all meeting silos for meetings that have `fathom-*.html` but no
  * `transcript.txt`. For each match, extracts the hidden transcript block,
  * writes `transcript.txt`, and updates `meeting.json`.
- *
- * Ported from J:/config/processes/fathom-extract-v1.js
  */
 
 import fs from 'node:fs';
