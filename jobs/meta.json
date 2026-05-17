@@ -1,0 +1,26 @@
+[
+  {
+    "id": "meta-sweep-duplicates",
+    "name": "Sweep Duplicates",
+    "script": "src/meta/sweep-duplicates.ts",
+    "schedule": { "freq": "minutely", "interval": 29 },
+    "description": "Scan entity directories for meta-identified duplicates and rejections, merge or delete as appropriate.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "meta",
+    "prerequisite": null
+  },
+  {
+    "id": "meta-disable-old",
+    "name": "Disable Old Meta",
+    "script": "src/meta/disable-old-meta.ts",
+    "schedule": { "freq": "daily", "byhour": 4, "byminute": 11 },
+    "description": "Disable meta synthesis for time-bounded entities older than their configured age threshold.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 120,
+    "enabled": true,
+    "domain": "meta",
+    "prerequisite": null
+  }
+]

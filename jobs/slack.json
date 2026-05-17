@@ -1,0 +1,14 @@
+[
+  {
+    "id": "slack-poll",
+    "name": "Slack Poll",
+    "script": "src/slack/poll.ts",
+    "schedule": { "freq": "minutely", "interval": 11 },
+    "description": "Poll Slack channels for new messages, auto-discover new channels, and write per-message JSON archives.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 300,
+    "enabled": true,
+    "domain": "slack",
+    "prerequisite": "Slack bot token configured in pipeline-config.json"
+  }
+]

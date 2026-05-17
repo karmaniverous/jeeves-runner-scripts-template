@@ -1,146 +1,174 @@
 # jeeves-scripts
 
-TypeScript runner scripts for [jeeves-runner](https://github.com/karmaniverous/jeeves-runner). This repo provides a structured home for your scheduled jobs: shared infrastructure in `src/lib/`, domain scripts organized by folder, and a full quality-gate pipeline.
+TypeScript scripts for [jeeves-runner](https://github.com/karmaniverous/jeeves-runner). Each script is a standalone `.ts` file executed by the runner on a schedule, via queue drain, or manually via `tsx`.
 
-## Setup
+## Relationship to jeeves-runner
 
-```bash
-npm install
-```
+The runner is a scheduler + state manager. It:
+
+- Executes scripts on cron-like schedules (defined in `jobs/*.json` manifests)
+- Provides persistent state (`getState`/`setState`), dedup collections (`getItem`/`setItem`), and work queues (`enqueue`/`dequeue`)
+- Manages overlap policies, timeouts, and failure alerting
+
+Scripts connect to the runner via `getRunnerClient()`, which reads the `JR_DB_PATH` env var set by the runner executor.
+
+## First Steps
+
+1. **Edit `src/lib/constants.ts`** — this is the one file to configure on a new instance. Fill in paths, credentials, and integration-specific values.
+2. **Run `npm install`**
+3. **Register runner jobs** — read `jobs/*.json` manifests and register via the runner API or onboarding skill.
 
 ### Runner Configuration
 
-Register `.ts` file execution in your jeeves-runner config so the runner knows how to execute TypeScript scripts:
+The runner needs a tsx runner for `.ts` files:
 
 ```jsonc
-// jeeves-runner config
 {
   "runners": {
-    "ts": "node <scripts-root>/node_modules/tsx/dist/cli.mjs"
+    "ts": "node {scriptsDir}/node_modules/tsx/dist/cli.mjs"
   }
 }
 ```
 
-Each job references a script by absolute path:
-
-```jsonc
-{
-  "id": "my-job",
-  "name": "My Scheduled Job",
-  "schedule": "every 1h",
-  "script": "/path/to/jeeves-scripts/src/my-domain/my-script.ts",
-  "source_type": "path"
-}
-```
-
-> **Note:** The runner defaults to plain `node` for file extensions not in the `runners` map. Plain Node can strip TypeScript types but cannot resolve `.js` → `.ts` imports, so the tsx runner entry is required.
-
 ## Repo Structure
 
 ```text
+jobs/                 Runner job manifests (one JSON file per domain)
 src/
-  lib/            Shared infrastructure (constants)
-  example/        Sample script — delete when you start building
-  {domain}/       Your scripts, organized by domain (e.g. github/, email/, slack/)
+  lib/                Shared infrastructure
+    constants.ts      THE file to edit on day one — all instance-specific values
+    pipeline-config.ts  Zod-validated operational config loader
+    silo-router.ts    Multi-tenant data routing by email domain / GitHub org / Slack workspace
+    dates.ts          Date formatting utilities (thin date-fns wrappers)
+    email.ts          Gmail parsing utilities (headers, body, attachments)
+    gh.ts             GitHub CLI wrappers (typed gh binary invocation)
+    gog.ts            Google Workspace CLI wrapper (gog binary with retry)
+    gateway-client.ts Gateway HTTP client for invoking OpenClaw tools
+    spawn-worker.ts   Gateway session spawner (dispatch pattern)
+  admin/              Token metrics, session refresh, maintenance
+  calendar/           Google Calendar event polling
+  convert/            DOCX/PDF → Markdown conversion
+  dispatchers/        LLM session dispatch framework (task-file-dispatcher.ts)
+  email/              Gmail polling, download, triage, classification
+  github/             Repo sync, issue sync, notifications, collaborator management
+  meetings/           Meeting extraction (Google Meet, Fathom, Notion) — entity pipeline exemplar
+  meta/               Entity lifecycle maintenance (sweep duplicates, disable old meta)
+  slack/              Slack message polling
+  x/                  X/Twitter: poll posts/mentions/feed/likes/bookmarks, post, like, repost (auto-refresh on 401)
 ```
 
-- **`src/lib/`** — Generic, reusable modules. Constants, shell execution helpers, and filesystem utilities live here. Add shared logic here when multiple scripts need it.
-- **`src/{domain}/`** — Scripts grouped by domain. Each script is a standalone entry point executed directly via `tsx`.
-- **`src/example/hello.ts`** — A minimal working script demonstrating the standard pattern. Delete it once you've written your first real script.
+Instance-specific directories (`vc/`, `tp/`) are not part of the template.
 
 ## Writing a Script
 
-Every script follows the same pattern:
+Every entry-point script wraps its logic in `runScript()` and uses `getRunnerClient()` for state:
 
 ```typescript
 import { runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-runScript('my-script', async () => {
+runScript('domain/my-script', () => {
   const client = getRunnerClient();
-
-  // Use client.getState / client.setState for persistent key-value state.
-  // Use client.enqueue / client.claim for work queues.
-
-  // ... your logic here ...
-
-  client.close();
+  try {
+    // Use client.getState / setState for persistent key-value state
+    // Use client.enqueue / dequeue for work queues
+    // Use client.getItem / setItem for dedup collections
+  } finally {
+    client.close();
+  }
 });
 ```
 
-- **`runScript()`** (from `@karmaniverous/jeeves`) wraps your logic in a crash handler that logs failures and exits with code 1.
-- **`getRunnerClient()`** (from `@karmaniverous/jeeves-runner`) creates a typed client connected to the runner's SQLite database. Honors the `JR_DB_PATH` env var (set automatically by the runner executor).
-
-## Dispatcher Pattern
-
-Scripts that need to spawn an OpenClaw Gateway LLM session use the dispatcher pattern:
+Scripts that write pipeline output to multi-tenant silos should resolve paths via `silo-router.ts`:
 
 ```typescript
-import { runScript } from '@karmaniverous/jeeves';
-import { runDispatcher } from '@karmaniverous/jeeves-runner';
+import { getBasePathForEmailDomain } from '../lib/silo-router.js';
 
+const basePath = getBasePathForEmailDomain(domain); // returns silo path or default
+const outputDir = path.join(basePath, 'email');
+```
+
+Single-tenant instances don't need silo routing — all paths resolve to `CONTENT_DIR`.
+
+Scripts that need LLM sessions use the dispatcher pattern:
+
+```typescript
+import { runDispatcher } from '@karmaniverous/jeeves-runner';
 import { SPAWN_WORKER_PATH } from '../lib/constants.js';
 
-runScript('my-dispatcher', () => {
-  const task = 'Analyze the latest data and post a summary to #reports.';
-
-  runDispatcher(task, {
-    jobId: 'my-dispatcher',
-    timeout: 300,
-    label: 'worker-my-dispatcher',
-  }, SPAWN_WORKER_PATH);
+runScript('domain/my-dispatcher', () => {
+  runDispatcher(task, { jobId: 'my-dispatcher', timeout: 300 }, SPAWN_WORKER_PATH);
 });
 ```
 
-- **`runDispatcher()`** pipes the task prompt to a spawn-worker script that handles the Gateway HTTP API.
-- **`SPAWN_WORKER_PATH`** points to `src/lib/spawn-worker.ts`, which manages session creation, polling, and token tracking.
-- The `--dry-run` flag prints the task JSON without dispatching, useful for testing.
+For file-based task dispatchers, use `taskFileDispatcher()` from `dispatchers/lib/`.
 
-### Task File Dispatcher
+### Prerequisite Guard
 
-For scripts that read a task from a Markdown file (the most common pattern), use the `taskFileDispatcher()` helper:
+Every entry-point script should check its required constants before doing work:
 
 ```typescript
-import { taskFileDispatcher } from '../dispatchers/lib/task-file-dispatcher.js';
-
-taskFileDispatcher({
-  scriptName: 'my-domain/my-briefing',
-  jobId: 'my-briefing',
-  taskFile: '/path/to/TASK.md',
-  timeout: 600,
-  injectDateContext: true,       // Prepend authoritative date/day-of-week
-  dateTimezone: 'America/New_York',
+runScript('x/poll-posts', () => {
+  if (!X_CLIENT_ID || !X_CLIENT_SECRET) {
+    console.log('[skip] X API credentials not configured');
+    return;
+  }
+  // ... actual work
 });
 ```
 
-This reads the task file, optionally injects a date context header (so the LLM knows the current date), and dispatches it.
+This makes it safe to register a runner job before its prerequisites are configured.
+
+## Entity Pipeline Pattern
+
+Scripts feed into the Jeeves entity pipeline lifecycle:
+
+1. **Ingest** — Scripts poll external sources (Gmail, Calendar, Slack, GitHub, X) and pull raw data into the content directory.
+2. **Extract** — Scripts parse ingested data and write structured entities (e.g. `meetings/{id}/meeting.json`). Each extractor is independent.
+3. **Store** — The content filesystem is the store. Entities are files in directories.
+4. **Discover & Synthesize** — jeeves-meta discovers new entities via `autoSeed` rules and synthesizes metadata.
+5. **Merge** — Runner jobs (sweep-duplicates) act on meta cross-ref findings to merge duplicates.
+
+### Adding a New Source to an Existing Entity Type
+
+Write another extractor that produces files matching the same glob pattern. The existing `autoSeed` rule in meta config already covers it.
+
+### Adding a New Entity Type
+
+1. Write extractors that produce files in a new directory structure
+2. Add an `autoSeed` entry in meta config with the glob and steer prompt
+3. Add an entry to `ENTITY_TYPES` in `constants.ts` for sweep/disable support
+4. Create a `jobs/{domain}.json` manifest for the new scripts
+
+The `meetings/` domain is the exemplar: three independent extractors (Google Meet, Fathom, Notion) writing to a shared entity store.
 
 ## Quality Gates
 
+This repo uses the [STAN](https://github.com/karmaniverous/stan) toolchain (ESLint, Prettier, TypeScript, Vitest, Knip, Lefthook).
+
 | Gate | Command | What it checks |
 |------|---------|----------------|
-| Typecheck | `npm run typecheck` | TypeScript strict mode, no emit |
-| Lint | `npm run lint` | ESLint strict + Prettier formatting |
+| Typecheck | `npm run typecheck` | TypeScript strict mode |
+| Lint | `npm run lint` | ESLint + Prettier |
 | Test | `npm run test` | Vitest test suite |
 | Knip | `npm run knip` | Unused exports and dependencies |
-| **STAN** | `npx stan run --sequential --no-archive` | Runs all of the above in sequence |
 
-Run STAN before committing to catch all issues in one pass.
+Run all four before committing: `npm run typecheck && npm run lint && npm test && npm run knip`
 
 ## Assistant Instructions
 
-> This section is for LLM coding assistants working in this repo.
+> Rules for LLM coding assistants working in this repo.
 
-When asked to create or modify runner scripts:
-
-1. **Use `runScript()` wrapper** for every script entry point. This provides crash handling and structured logging.
-2. **Use `getRunnerClient()`** for state and queue access. Never construct the client manually.
-3. **Import from packages, not local wrappers.** Use `runScript` from `@karmaniverous/jeeves` and `getRunnerClient` from `@karmaniverous/jeeves-runner`. Do not create local wrapper modules for functionality already exported by these packages.
-4. **Add shared logic to `src/lib/`**, keep script entry points thin. A script should orchestrate; utilities should do the work.
-5. **Write tests for lib modules**, not for script entry points. Lib modules are pure-ish functions; scripts are side-effectful orchestrators.
-6. **All files under 300 LOC.** If a file is getting long, extract a module.
-7. **Run STAN before committing:** `npx stan run --sequential --no-archive`. Zero errors AND zero warnings.
-8. **No `eslint-disable` comments.** Fix the code, don't suppress the warning.
-9. **Organize by domain.** New scripts go in `src/{domain}/`, not in the root `src/` directory.
-10. **Update `src/lib/constants.ts`** when adding deployment-specific paths or config values. Keep them centralized.
-11. **Use the dispatcher pattern** for scripts that need LLM sessions. Pair `runDispatcher()` with a TASK.md file and the `taskFileDispatcher()` helper when applicable.
+1. **Use `runScript()` wrapper** for every entry point. Never call `main()` directly.
+2. **Use `getRunnerClient()`** for state/queue access. Always close in a `finally` block.
+3. **Import from packages**, not local wrappers. Use `@karmaniverous/jeeves` and `@karmaniverous/jeeves-runner`.
+4. **Add shared logic to `src/lib/`** or `src/{domain}/lib/`. Keep entry points thin.
+5. **Write tests for lib modules**, not entry points. Co-locate test files (`.test.ts`).
+6. **All files under 300 LOC.** Extract a module if a file grows beyond this.
+7. **Run quality gates before committing.** Zero errors, zero warnings.
+8. **No `eslint-disable` comments.** Fix the code.
+9. **Organize by domain.** New scripts go in `src/{domain}/`, shared utilities in `src/lib/`.
+10. **Update `constants.ts`** when adding paths or config values. Never hardcode instance-specific values in scripts.
+11. **Use the dispatcher pattern** for scripts that need LLM sessions.
+12. **Add `@module` JSDoc** to every new file per the inline comment standard (spec §9).
+13. **Add prerequisite guards** to entry points that depend on optional integrations.
