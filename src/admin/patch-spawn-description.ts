@@ -103,8 +103,9 @@ function patchSpawnDescription(): void {
 
     // Remove the gate element. It's a backtick-string line ending with a comma
     // inserted right after `baseDescription = [`.
+    // Match non-backtick chars OR escaped backticks (\`) up to the closing backtick.
     const gateLineRe =
-      /\n\t\t`STOP: If this task only needs filesystem access[^`]*`,/;
+      /\n\t\t`STOP: If this task only needs filesystem access(?:[^`]|\\`)*`,/;
     const newContent = content.replace(gateLineRe, '');
 
     if (newContent === content) {
@@ -145,7 +146,8 @@ function patchSpawnDescription(): void {
 
   // Insert the gate text as the first array element after the opening bracket.
   const insertPos = markerIdx + marker.length;
-  const gateElement = `\n\t\t\`${GATE_TEXT}\`,`;
+  const escapedGate = GATE_TEXT.replace(/`/g, '\\`');
+  const gateElement = `\n\t\t\`${escapedGate}\`,`;
   const newContent =
     content.slice(0, insertPos) + gateElement + content.slice(insertPos);
 
