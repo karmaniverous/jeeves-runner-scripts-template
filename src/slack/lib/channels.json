@@ -1,0 +1,1384 @@
+{
+  "C000EXMPL01": {
+    "name": "project-meta-jeeves",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "created": "2026-01-27T01:54:20Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL04",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1780112154.708639",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL02": {
+    "name": "jeeves-admin",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "created": "2026-01-28T09:47:55Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1780136122.292179",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL03": {
+    "name": "vc",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "created": "2026-01-29T02:26:26Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL04",
+      "U000EXMPL07",
+      "U000EXMPL08"
+    ],
+    "lastTs": "1778473543.652299",
+    "metadata": {
+      "project": "vc"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL04": {
+    "name": "jgs",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "isGeneral": true,
+    "created": "2026-01-25T10:45:07Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1780135386.264319",
+    "metadata": {
+      "project": "jgs"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL05": {
+    "name": "jeeves-codebase",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "created": "2026-01-27T01:33:25Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1773309818.553009",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL06": {
+    "name": "project-bot-phone",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "created": "2026-01-27T19:31:11Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1771559508.027009",
+    "metadata": {
+      "project": "bot-phone"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL07": {
+    "name": "jeeves-social",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "created": "2026-01-27T06:01:41Z",
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1780009727.974209",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "D000EXMPL01": {
+    "name": "dm-alice",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "U000EXAMPLE"
+    ],
+    "lastTs": "1780136096.626269",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL08": {
+    "name": "project-stan",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL04",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1771559507.967839",
+    "metadata": {
+      "project": "stan"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL09": {
+    "name": "project-tiny-poems",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1777684274.673239",
+    "metadata": {
+      "project": "tiny-poems"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL10": {
+    "name": "project-jeeves-server",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1780132690.022049",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL11": {
+    "name": "vc-qb",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL07",
+      "U000EXMPL08"
+    ],
+    "lastTs": "1778473543.922829",
+    "metadata": {
+      "project": "vc"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL12": {
+    "name": "project-tiny-poems-website",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1777564577.191839",
+    "metadata": {
+      "project": "tiny-poems"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL13": {
+    "name": "ask-jeeves",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL04",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1772601642.384049",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL14": {
+    "name": "jgs-moneymatch",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1779258781.815499",
+    "metadata": {
+      "project": "jgs"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL15": {
+    "name": "project-identity-engine",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1771559508.090929",
+    "metadata": {
+      "project": "identity-engine"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL16": {
+    "name": "project-n8n-nodes-openclaw",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL05",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1771559508.152109",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL17": {
+    "name": "project-jsonmap",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1771690500.736919",
+    "metadata": {
+      "project": "jsonmap"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL18": {
+    "name": "project-jeeves-watcher",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXAMPLE",
+      "U000EXMPL02",
+      "U000EXMPL04",
+      "U000EXMPL05",
+      "U000EXMPL06",
+      "U000EXMPL07",
+      "U000EXMPL09",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1780132557.655999",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "C000EXMPL19": {
+    "name": "project-test",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL16",
+      "U000EXMPL17",
+      "U000EXMPL18",
+      "U000EXMPL19",
+      "U000EXMPL20",
+      "U000EXMPL21",
+      "U000EXMPL22",
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1779798480.249449",
+    "metadata": {
+      "project": "vc"
+    },
+    "_account": "vc"
+  },
+  "C000EXMPL20": {
+    "name": "vc-testing",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL16",
+      "U000EXMPL17",
+      "U000EXMPL18",
+      "U000EXMPL19",
+      "U000EXMPL20",
+      "U000EXMPL22",
+      "U000EXAMPLE",
+      "U000EXMPL02"
+    ],
+    "lastTs": "1779930770.159079",
+    "metadata": {
+      "project": "vc"
+    },
+    "_account": "vc"
+  },
+  "D000EXMPL02": {
+    "name": "dm-user4",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "U000EXMPL10"
+    ],
+    "lastTs": "1777250707.844399",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "D000EXMPL03": {
+    "name": "dm-user3",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "U000EXMPL09"
+    ],
+    "lastTs": "1779918190.437009",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "D000EXMPL04": {
+    "name": "dm-user5",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "U000EXMPL05"
+    ],
+    "lastTs": "1771889147.730629",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "D000EXMPL05": {
+    "name": "dm-alicegalvin",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "U000EXMPL04"
+    ],
+    "lastTs": "1780135376.876939",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "D000EXMPL06": {
+    "name": "dm-user2",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "U000EXMPL03"
+    ],
+    "lastTs": "0",
+    "metadata": {
+      "project": "jeeves"
+    },
+    "_account": "default"
+  },
+  "D000EXMPL07": {
+    "name": "dm-slackbot",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "participants": [
+      "U000EXMPL02",
+      "USLACKBOT"
+    ],
+    "lastTs": "1769852020.894189",
+    "_account": "default"
+  },
+  "C000EXMPL21": {
+    "name": "project-jeeves-runner",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780132641.172149",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-02T07:07:27.328Z",
+    "_account": "default"
+  },
+  "C000EXMPL22": {
+    "name": "project-openclaw",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778251055.819419",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-02T07:07:27.329Z",
+    "_account": "default"
+  },
+  "D000EXMPL08": {
+    "name": "dm-U000EXMPL20",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1775499079.933829",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-02T07:07:27.330Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "D000EXMPL09": {
+    "name": "dm-U000EXMPL22",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1775738301.315869",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-02T07:07:27.330Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C000EXMPL23": {
+    "name": "project-goodboy",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1772602569.064009",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-03T04:11:00.566Z",
+    "_account": "default"
+  },
+  "C000EXMPL24": {
+    "name": "vc-regression",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1776146445.833729",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-06T06:11:00.452Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "D000EXMPL10": {
+    "name": "dm-U000EXMPL23",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1772838487.719459",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-06T06:11:00.454Z",
+    "_account": "default"
+  },
+  "C000EXMPL25": {
+    "name": "project-rrstack",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1774697933.172889",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-07T02:11:00.500Z",
+    "_account": "default"
+  },
+  "C000EXMPL26": {
+    "name": "project-jeeves-synth",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780134785.757859",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-07T12:11:00.460Z",
+    "_account": "default"
+  },
+  "C0AL76LDJEL": {
+    "name": "project-smoz",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1773394135.740089",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-09T11:11:00.545Z",
+    "_account": "default"
+  },
+  "C0AKKGWMGQ6": {
+    "name": "vc-ach",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778473543.998829",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-10T11:11:00.476Z",
+    "_account": "default"
+  },
+  "C0AKSR462PQ": {
+    "name": "vc-backend",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778473544.076189",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-11T06:11:00.561Z",
+    "_account": "default"
+  },
+  "D0AKDCUHFK9": {
+    "name": "dm-U000EXMPL24",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1774355273.606409",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-11T06:11:00.562Z",
+    "_account": "default"
+  },
+  "C0AL6EP7U5R": {
+    "name": "jgs-recruiting",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779351824.616499",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T07:11:00.455Z",
+    "_account": "default"
+  },
+  "C0AL9JG23C5": {
+    "name": "centennial-jill",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779399475.291409",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T08:11:01.136Z",
+    "_account": "default"
+  },
+  "C0ALGJSLGSY": {
+    "name": "centennial-rgw",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780082582.740729",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T08:11:01.139Z",
+    "_account": "default"
+  },
+  "C0AM798TQM6": {
+    "name": "centennial",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779918155.227359",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T08:11:01.139Z",
+    "_account": "default"
+  },
+  "C0AM79QBWQY": {
+    "name": "ty",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779969296.089279",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T08:11:01.139Z",
+    "_account": "default"
+  },
+  "D0AL9JKEU5B": {
+    "name": "dm-U0ALGJXTT60",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T08:11:01.139Z",
+    "_account": "default"
+  },
+  "C0AL7DG0C8K": {
+    "name": "project-smoz-cognito",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1777369297.231609",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T10:11:00.448Z",
+    "_account": "default"
+  },
+  "C0ALJRWGRJ8": {
+    "name": "vc-ops",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1780104264.868759",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-13T14:11:00.503Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "D0AM4TWMN1X": {
+    "name": "dm-U000EXMPL25",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-16T05:03:00.744Z",
+    "_account": "default"
+  },
+  "C000EXMPL27": {
+    "name": "project-jeeves-cloud",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1773926360.166109",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-18T03:03:00.451Z",
+    "_account": "default"
+  },
+  "C0ALP4KC7Q8": {
+    "name": "jgs",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1779344372.681619",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-18T07:03:00.446Z",
+    "_account": "default"
+  },
+  "D0AMFV5SGN8": {
+    "name": "dm-U000EXMPL21",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1775766772.352559",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-18T13:03:00.459Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0AMFV5SJKG": {
+    "name": "project-jeeves-x",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1773891125.600219",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-19T03:03:00.446Z",
+    "_account": "default"
+  },
+  "C0AMZGZ5351": {
+    "name": "project-smoz-s3",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1774260836.690329",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-23T04:25:00.558Z",
+    "_account": "default"
+  },
+  "C0AN35LG0BF": {
+    "name": "ceo",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780130227.302139",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-23T07:28:00.466Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0ANTDUSFUL": {
+    "name": "yosa-with-jeeves",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1774525532.518359",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-25T06:14:00.589Z",
+    "_account": "default"
+  },
+  "D0AP127FNKE": {
+    "name": "dm-U000EXMPL18",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1774482986.679669",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-26T00:32:00.518Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0AP251FKU4": {
+    "name": "jeeves-4u",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779781900.848339",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-26T04:36:00.555Z",
+    "_account": "default"
+  },
+  "D0AP3EH362Y": {
+    "name": "dm-U0ANJDDUST1",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-26T09:41:00.484Z",
+    "_account": "default"
+  },
+  "C0APU4QV18R": {
+    "name": "jgs-bidbuild",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780059056.066179",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-28T04:23:00.560Z",
+    "_account": "default"
+  },
+  "C0APKJPB0AJ": {
+    "name": "vc-shopify",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1780047603.140839",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-30T06:12:01.211Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0APRRF4YS1": {
+    "name": "agentic-commerce",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1778626418.299639",
+    "metadata": {},
+    "_autoDiscovered": "2026-03-31T00:30:01.571Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0AQ5SF6CLE": {
+    "name": "vc-infrastructure",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1778474481.251539",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-01T11:04:01.937Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0AQHN7DQR2": {
+    "name": "vc-ledger",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778473543.754669",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-02T02:19:02.031Z",
+    "_account": "default"
+  },
+  "C0APR554GBS": {
+    "name": "content-and-production",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780091330.411159",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-03T04:45:02.019Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "C0ANWSA8FCJ": {
+    "name": "ux-and-design",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779406746.376009",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-03T05:46:03.313Z",
+    "isSlackConnect": true,
+    "_account": "vc"
+  },
+  "D0AQS2EDETD": {
+    "name": "dm-U0AQS2ELK8B",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1776215302.791279",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-05T11:39:01.478Z",
+    "_account": "default"
+  },
+  "D0AQYRK4L66": {
+    "name": "dm-U0ART48F5U0",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1775486993.717259",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-05T15:43:01.740Z",
+    "_account": "default"
+  },
+  "C0ASBHDSJ92": {
+    "name": "jeeves-demo",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1775881329.683129",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-11T02:52:01.607Z",
+    "_account": "default"
+  },
+  "C0ASLREER6H": {
+    "name": "jgs-client-creditgenius",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779801781.511829",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.639Z",
+    "_account": "default"
+  },
+  "D0ATHNNU0N4": {
+    "name": "dm-U0AKST4DD8W",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0AT2BRRG1X": {
+    "name": "dm-U02PQFA7MU7",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0AT2BAV881": {
+    "name": "dm-USLACKBOT",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0AST2S1G04": {
+    "name": "dm-U000EXMPL16",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0AST2RTC2G": {
+    "name": "dm-U0AP6QE6P5J",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0ASPEWUURG": {
+    "name": "dm-U0ANWR2GVFD",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0ASMCXSRRU": {
+    "name": "dm-U000EXMPL21",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0ASL2Y3Y3F": {
+    "name": "dm-U000EXMPL17",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0ASH3FB6GK": {
+    "name": "dm-U000EXMPL20",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778057239.383939",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0ASH3F66R1": {
+    "name": "dm-U000EXMPL18",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780098970.511839",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0AS81GTSBH": {
+    "name": "dm-U000EXMPL22",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "D0AS81GQT5M": {
+    "name": "dm-U054QNC9BE0",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "0",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T07:55:20.931Z",
+    "_account": "vc"
+  },
+  "C0AS9A9G5LP": {
+    "name": "project-entity-manager",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1777890759.733659",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T08:08:04.070Z",
+    "_account": "default"
+  },
+  "C0ASKFPUK19": {
+    "name": "holden-space",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778650447.954599",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-14T11:11:04.105Z",
+    "_account": "default"
+  },
+  "C0ASXDYTVP0": {
+    "name": "shopify",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1779939938.886879",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-15T05:29:04.460Z",
+    "_account": "vc"
+  },
+  "C0AT5CJM744": {
+    "name": "jeeves-cosmos",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1777274048.066239",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-15T11:35:04.884Z",
+    "_account": "default"
+  },
+  "C0ATHED6UQJ": {
+    "name": "jeeves-digest",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780090739.175599",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-17T01:12:04.656Z",
+    "_account": "default"
+  },
+  "C0ATT6D31U3": {
+    "name": "jeeves-data-genius",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780020448.710409",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-20T08:30:12.866Z",
+    "_account": "default"
+  },
+  "C0AUJRK8DTM": {
+    "name": "jeeves-tools",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780136265.958149",
+    "metadata": {},
+    "_autoDiscovered": "2026-04-23T05:38:04.548Z",
+    "_account": "default"
+  },
+  "C0B135EEGHY": {
+    "name": "jgs-social",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1777631499.468519",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-01T09:51:04.417Z",
+    "_account": "default"
+  },
+  "C0B16QZKW0N": {
+    "name": "jeeves-levenstein",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1777885380.224119",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-04T09:01:04.115Z",
+    "_account": "default"
+  },
+  "C0B1F22765R": {
+    "name": "ops-tech",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780088577.214059",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-05T00:16:04.732Z",
+    "_account": "vc"
+  },
+  "C04HZ5QCL3E": {
+    "name": "project-mgmt",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1778899199.776059",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-05T08:24:04.839Z",
+    "_account": "vc"
+  },
+  "C0B1PLAQ1QS": {
+    "name": "vc-move-store",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778473543.833369",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-05T09:25:04.113Z",
+    "_account": "default"
+  },
+  "C05QQST6FQA": {
+    "name": "product",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1779683451.928439",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-06T09:49:04.290Z",
+    "_account": "vc"
+  },
+  "C0B1UTHSAT1": {
+    "name": "jeeves-mckenna",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778167776.881009",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-07T16:19:04.238Z",
+    "_account": "default"
+  },
+  "C0B270CS6PP": {
+    "name": "jeeves-mohamed",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778167721.599399",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-07T16:19:04.239Z",
+    "_account": "default"
+  },
+  "C0B2E05U50C": {
+    "name": "jeeves-moreno",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778460470.930969",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-07T16:19:04.239Z",
+    "_account": "default"
+  },
+  "C0B26GK4735": {
+    "name": "workshop",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779896606.204379",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-07T21:24:04.788Z",
+    "_account": "vc"
+  },
+  "C000EXMPL28": {
+    "name": "jgs-seek",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778244841.007159",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-08T11:38:03.982Z",
+    "_account": "default"
+  },
+  "C0B2UCNP5LJ": {
+    "name": "aris-onboarding",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779787573.970389",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-10T10:24:04.731Z",
+    "_account": "vc"
+  },
+  "C000EXMPL40": {
+    "name": "ops-ceo",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780078084.388149",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-12T02:03:04.257Z",
+    "_account": "vc"
+  },
+  "C000EXMPL29": {
+    "name": "testing-framework",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778581289.121519",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-12T10:11:04.459Z",
+    "_account": "default"
+  },
+  "D000EXMPL11": {
+    "name": "dm-U000EXMPL27",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778724039.489599",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-13T00:25:05.150Z",
+    "_account": "vc"
+  },
+  "C000EXMPL30": {
+    "name": "project-jeeves-scripts",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779091421.207969",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-13T05:30:04.778Z",
+    "_account": "default"
+  },
+  "C000EXMPL31": {
+    "name": "gtm-merchants",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779304301.852499",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-14T13:01:04.969Z",
+    "_account": "vc"
+  },
+  "C000EXMPL32": {
+    "name": "access-alerts",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1778773349.781149",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-14T14:02:04.684Z",
+    "_account": "vc"
+  },
+  "C000EXMPL33": {
+    "name": "project-aws-tools",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779274791.364119",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-20T11:21:03.986Z",
+    "_account": "default"
+  },
+  "D000EXMPL12": {
+    "name": "dm-U000EXMPL28",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779391617.970999",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-20T19:29:04.578Z",
+    "_account": "vc"
+  },
+  "C000EXMPL34": {
+    "name": "jgs-lima-onboarding",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779352672.475669",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-21T06:40:04.318Z",
+    "_account": "default"
+  },
+  "D000EXMPL13": {
+    "name": "dm-U000EXMPL26",
+    "type": "dm",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780051913.423589",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-21T11:45:03.984Z",
+    "_account": "default"
+  },
+  "C000EXMPL35": {
+    "name": "jeeves-courtnie",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779633031.081499",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-24T14:59:04.803Z",
+    "_account": "default"
+  },
+  "C000EXMPL36": {
+    "name": "dev-cron-messaging",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1780059844.257729",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-25T09:17:04.344Z",
+    "_account": "vc"
+  },
+  "C000EXMPL37": {
+    "name": "jgs-admin",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1779855236.771879",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-27T02:58:04.263Z",
+    "_account": "default"
+  },
+  "C000EXMPL38": {
+    "name": "dev-payments",
+    "type": "channel",
+    "isPrivate": false,
+    "isArchived": false,
+    "lastTs": "1779966186.873519",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-28T10:29:06.118Z",
+    "_account": "vc"
+  },
+  "C000EXMPL39": {
+    "name": "project-furniture",
+    "type": "channel",
+    "isPrivate": true,
+    "isArchived": false,
+    "lastTs": "1780114981.274799",
+    "metadata": {},
+    "_autoDiscovered": "2026-05-30T02:08:03.911Z",
+    "_account": "default"
+  }
+}
