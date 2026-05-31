@@ -120,10 +120,10 @@ describe('detectChannel', () => {
   it('detects channel ID from channel: pattern', () => {
     const lines = [
       '{"type":"session","id":"abc"}',
-      '{"type":"message","message":{"role":"user","content":[{"type":"text","text":"[slack message id: 123 channel: C000EXMPL21]"}]}}',
+      '{"type":"message","message":{"role":"user","content":[{"type":"text","text":"[slack message id: 123 channel: C000EXAMPLE1]"}]}}',
     ];
     const result = detectChannel(lines);
-    expect(result.key).toBe('slack:channel:C000EXMPL21');
+    expect(result.key).toBe('slack:channel:C000EXAMPLE1');
   });
 
   it('detects Slack DM from custom_message runtime context', () => {
