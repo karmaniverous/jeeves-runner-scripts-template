@@ -22,6 +22,7 @@ import {
 
 import {
   PRIMARY_WORKSPACE,
+  SCRIPTS_DIR,
   SLACK_DOMAIN_DIR,
   SLACK_WORKSPACE_CACHE_PATH,
 } from '../lib/constants.js';
@@ -35,8 +36,8 @@ import {
   sleep,
 } from './lib/slack-api.js';
 
-const CHANNELS_FILE = path.join(SLACK_DOMAIN_DIR, '.domain', 'channels.json');
-const USERS_FILE = path.join(SLACK_DOMAIN_DIR, '.domain', 'users.json');
+const CHANNELS_FILE = path.join(SCRIPTS_DIR, 'src/slack/lib/channels.json');
+const USERS_FILE = path.join(SCRIPTS_DIR, 'src/slack/lib/users.json');
 const RATE_LIMIT_MS = 1200;
 
 interface ChannelInfo {
