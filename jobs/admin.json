@@ -3,7 +3,10 @@
     "id": "collect-token-metrics",
     "name": "Collect Token Metrics",
     "script": "src/admin/collect-token-metrics.ts",
-    "schedule": { "freq": "minutely", "interval": 97 },
+    "schedule": {
+      "freq": "minutely",
+      "interval": 97
+    },
     "description": "Incrementally scan OpenClaw session transcripts and write immutable hourly token-usage buckets.",
     "overlap_policy": "skip",
     "timeout_seconds": 600,
@@ -15,7 +18,10 @@
     "id": "session-refresh",
     "name": "Session Refresh",
     "script": "src/admin/session-refresh.ts",
-    "schedule": { "freq": "minutely", "interval": 23 },
+    "schedule": {
+      "freq": "minutely",
+      "interval": 23
+    },
     "description": "Refresh idle or oversized OpenClaw sessions to manage context window costs.",
     "overlap_policy": "skip",
     "timeout_seconds": 300,
@@ -27,22 +33,13 @@
     "id": "refresh-token-rates",
     "name": "Refresh Token Rates",
     "script": "src/admin/refresh-token-rates.ts",
-    "schedule": { "freq": "minutely", "interval": 59 },
+    "schedule": {
+      "freq": "minutely",
+      "interval": 59
+    },
     "description": "Aggregate token metric buckets into a single rates JSON file for dashboards and cost reporting.",
     "overlap_policy": "skip",
     "timeout_seconds": 120,
-    "enabled": true,
-    "domain": "admin",
-    "prerequisite": null
-  },
-  {
-    "id": "patch-tool-order",
-    "name": "Patch Tool Order",
-    "script": "src/admin/patch-tool-order.ts",
-    "schedule": { "freq": "minutely", "interval": 29 },
-    "description": "Reorder tool definitions in OpenClaw agent config for consistent tool presentation.",
-    "overlap_policy": "skip",
-    "timeout_seconds": 60,
     "enabled": true,
     "domain": "admin",
     "prerequisite": null
