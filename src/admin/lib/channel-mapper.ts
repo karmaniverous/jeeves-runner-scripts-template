@@ -124,6 +124,11 @@ export function detectChannel(lines: string[]): ChannelResult {
     }
     const chanRef = extractSlackChannel(text);
     if (chanRef) return chanRef;
+
+    // Granular subagent cascade before generic fallback
+    const subLabel = detectSubagentLabel(text);
+    if (subLabel) return subLabel;
+
     return { key: 'subagent', name: 'Subagent' };
   }
 
@@ -169,6 +174,11 @@ export function detectChannel(lines: string[]): ChannelResult {
       if (metaPhase) return metaPhase;
       return { key: 'meta-synthesis', name: 'Meta Synthesis' };
     }
+
+    // Granular subagent cascade before generic fallback
+    const subLabel = detectSubagentLabel(text);
+    if (subLabel) return subLabel;
+
     return { key: 'subagent', name: 'Subagent' };
   }
 
@@ -195,6 +205,93 @@ export function detectChannel(lines: string[]): ChannelResult {
   if (chanRef) return chanRef;
 
   return { key: 'unknown', name: 'Unknown' };
+}
+
+/**
+ * Detect granular subagent label from transcript text.
+ *
+ * Cascade (first match wins):
+ * 1. taskName= or taskName: patterns
+ * 2. label= or label: with quoted string
+ * 3. Slack channel ID refs <#CXXX|name>
+ * 4. Repo references D:\repos\{org}\{repo} or D:/repos/{org}/{repo}
+ * 5. First H1 header (skip generic dispatcher prompts)
+ * 6. Spec references {name}/spec.md
+ */
+function detectSubagentLabel(text: string): ChannelResult | null {
+  // 1. Task name: taskName= or taskName:
+  const taskNameMatch = /taskName[=:]\s*([^\s,;"'\]}{)]+)/i.exec(text);
+  if (taskNameMatch) {
+    const name = taskNameMatch[1].slice(0, 60);
+    return {
+      key: `subagent:task:${name}`,
+      name: `Subagent: task ${name}`,
+    };
+  }
+
+  // 2. Session label: label= or label: with quoted value
+  const labelMatch = /\blabel[=:]\s*["']([^"']+)["']/i.exec(text);
+  if (labelMatch) {
+    const value = labelMatch[1].slice(0, 60);
+    return {
+      key: `subagent:label:${value}`,
+      name: `Subagent: label ${value}`,
+    };
+  }
+
+  // 3. Slack channel ID refs: <#C0XXXXXXXX|display-name>
+  const slackRefMatch = /<#(C[A-Z0-9]{8,})\|?([^>]*)>/.exec(text);
+  if (slackRefMatch) {
+    const channelId = slackRefMatch[1];
+    const displayName = slackRefMatch[2].trim();
+    if (displayName) {
+      return {
+        key: `subagent:for:#${displayName}`,
+        name: `Subagent: for #${displayName}`,
+      };
+    }
+    return {
+      key: `subagent:for:${channelId}`,
+      name: `Subagent: for ${channelId}`,
+    };
+  }
+
+  // 4. Repo references: D:\repos\{org}\{repo} or D:/repos/{org}/{repo}
+  const repoMatch =
+    /D:[/\\]repos[/\\]([a-zA-Z0-9_.-]+)[/\\]([a-zA-Z0-9_.-]+)/.exec(text);
+  if (repoMatch) {
+    const org = repoMatch[1];
+    const repo = repoMatch[2];
+    return {
+      key: `subagent:repo:${org}/${repo}`,
+      name: `Subagent: repo ${org}/${repo}`,
+    };
+  }
+
+  // 5. First H1 header (skip generic dispatcher prompts)
+  const h1Match = /^# (.+)$/m.exec(text);
+  if (h1Match) {
+    const h1Content = h1Match[1].trim();
+    if (!h1Content.startsWith('is in the system prompt')) {
+      const truncated = h1Content.slice(0, 60);
+      return {
+        key: `subagent:task:${truncated}`,
+        name: `Subagent: task ${truncated}`,
+      };
+    }
+  }
+
+  // 6. Spec references: {name}/spec.md
+  const specMatch = /([a-z0-9-]+)\/spec\.md/.exec(text);
+  if (specMatch) {
+    const specName = specMatch[1];
+    return {
+      key: `subagent:spec:${specName}`,
+      name: `Subagent: spec ${specName}`,
+    };
+  }
+
+  return null;
 }
 
 /**
