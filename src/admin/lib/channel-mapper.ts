@@ -219,10 +219,11 @@ export function detectChannel(lines: string[]): ChannelResult {
  * 6. Spec references {name}/spec.md
  */
 function detectSubagentLabel(text: string): ChannelResult | null {
-  // 1. Task name: taskName= or taskName:
-  const taskNameMatch = /taskName[=:]\s*([^\s,;"'\]}{)]+)/i.exec(text);
+  // 1. Task name: taskName= or taskName: (quoted or unquoted)
+  const taskNameMatch =
+    /taskName[=:]\s*(?:["']([^"']+)["']|([^\s,;"'\]}{)]+))/i.exec(text);
   if (taskNameMatch) {
-    const name = taskNameMatch[1].slice(0, 60);
+    const name = (taskNameMatch[1] || taskNameMatch[2]).slice(0, 60);
     return {
       key: `subagent:task:${name}`,
       name: `Subagent: task ${name}`,
@@ -245,9 +246,12 @@ function detectSubagentLabel(text: string): ChannelResult | null {
     const channelId = slackRefMatch[1];
     const displayName = slackRefMatch[2].trim();
     if (displayName) {
+      const cleanName = displayName.startsWith('#')
+        ? displayName
+        : `#${displayName}`;
       return {
-        key: `subagent:for:#${displayName}`,
-        name: `Subagent: for #${displayName}`,
+        key: `subagent:for:${cleanName}`,
+        name: `Subagent: for ${cleanName}`,
       };
     }
     return {
@@ -256,9 +260,11 @@ function detectSubagentLabel(text: string): ChannelResult | null {
     };
   }
 
-  // 4. Repo references: D:\repos\{org}\{repo} or D:/repos/{org}/{repo}
+  // 4. Repo references: {drive}:\repos\{org}\{repo} or /repos/{org}/{repo}
   const repoMatch =
-    /D:[/\\]repos[/\\]([a-zA-Z0-9_.-]+)[/\\]([a-zA-Z0-9_.-]+)/.exec(text);
+    /(?:[a-zA-Z]:)?[/\\]repos[/\\]([a-zA-Z0-9_.-]+)[/\\]([a-zA-Z0-9_.-]+)/.exec(
+      text,
+    );
   if (repoMatch) {
     const org = repoMatch[1];
     const repo = repoMatch[2];
@@ -268,11 +274,23 @@ function detectSubagentLabel(text: string): ChannelResult | null {
     };
   }
 
-  // 5. First H1 header (skip generic dispatcher prompts)
+  // 5. First H1 header (skip generic dispatcher and boilerplate headers)
   const h1Match = /^# (.+)$/m.exec(text);
   if (h1Match) {
     const h1Content = h1Match[1].trim();
-    if (!h1Content.startsWith('is in the system prompt')) {
+    const lowerH1 = h1Content.toLowerCase();
+    const isGeneric =
+      lowerH1.startsWith('is in the system prompt') ||
+      lowerH1.includes('system prompt') ||
+      [
+        'instructions',
+        'context',
+        'task description',
+        'user query',
+        'response',
+        'summary',
+      ].includes(lowerH1);
+    if (!isGeneric) {
       const truncated = h1Content.slice(0, 60);
       return {
         key: `subagent:task:${truncated}`,
@@ -281,8 +299,8 @@ function detectSubagentLabel(text: string): ChannelResult | null {
     }
   }
 
-  // 6. Spec references: {name}/spec.md
-  const specMatch = /([a-z0-9-]+)\/spec\.md/.exec(text);
+  // 6. Spec references: {name}/spec.md or {name}\spec.md
+  const specMatch = /([a-z0-9-]+)[/\\]spec\.md/.exec(text);
   if (specMatch) {
     const specName = specMatch[1];
     return {
