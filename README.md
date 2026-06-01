@@ -32,30 +32,22 @@ The runner needs a tsx runner for `.ts` files:
 
 ## Repo Structure
 
-```text
-jobs/                 Runner job manifests (one JSON file per domain)
-src/
-  lib/                Shared infrastructure
-    constants.ts      THE file to edit on day one — all instance-specific values
-    pipeline-config.ts  Zod-validated operational config loader
-    silo-router.ts    Multi-tenant data routing by email domain / GitHub org / Slack workspace
-    dates.ts          Date formatting utilities (thin date-fns wrappers)
-    email.ts          Gmail parsing utilities (headers, body, attachments)
-    gh.ts             GitHub CLI wrappers (typed gh binary invocation)
-    gog.ts            Google Workspace CLI wrapper (gog binary with retry)
-    gateway-client.ts Gateway HTTP client for invoking OpenClaw tools
-    spawn-worker.ts   Gateway session spawner (dispatch pattern)
-  admin/              Token metrics, session refresh, maintenance
-  calendar/           Google Calendar event polling
-  convert/            DOCX/PDF → Markdown conversion
-  dispatchers/        LLM session dispatch framework (task-file-dispatcher.ts)
-  email/              Gmail polling, download, triage, classification
-  github/             Repo sync, issue sync, notifications, collaborator management
-  meetings/           Meeting extraction (Google Meet, Fathom, Notion) — entity pipeline exemplar
-  meta/               Entity lifecycle maintenance (sweep duplicates, disable old meta)
-  slack/              Slack message polling
-  x/                  X/Twitter: poll posts/mentions/feed/likes/bookmarks, post, like, repost (auto-refresh on 401)
-```
+Runner job manifests live in `jobs/` (one JSON file per domain). Scripts are organized by domain under `src/`:
+
+| Domain | Description | README |
+|--------|-------------|--------|
+| `admin/` | Token metrics, session refresh, maintenance | [README](src/admin/README.md) |
+| `calendar/` | Google Calendar event polling | [README](src/calendar/README.md) |
+| `convert/` | DOCX/PDF → Markdown conversion | [README](src/convert/README.md) |
+| `core/` | Housekeeping (orphaned file cleanup) | [README](src/core/README.md) |
+| `dispatchers/` | LLM session dispatch framework | [README](src/dispatchers/README.md) |
+| `email/` | Gmail polling, download, triage, classification | [README](src/email/README.md) |
+| `github/` | Repo sync, issue sync, notifications, collaborator management | [README](src/github/README.md) |
+| `lib/` | Shared infrastructure (constants, dates, email parsing, CLI wrappers) | [README](src/lib/README.md) |
+| `meetings/` | Meeting extraction (Google Meet, Fathom, Notion) | [README](src/meetings/README.md) |
+| `meta/` | Entity lifecycle maintenance | [README](src/meta/README.md) |
+| `slack/` | Slack message polling | [README](src/slack/README.md) |
+| `x/` | X/Twitter: polling, posting, engagement | [README](src/x/README.md) |
 
 Instance-specific directories (`vc/`, `tp/`) are not part of the template.
 
