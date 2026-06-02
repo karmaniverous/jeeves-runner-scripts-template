@@ -95,3 +95,89 @@ Usage: `echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thi
 - Waits for transcript to flush
 - Outputs `WORKER_RESULT:{"sessionKey":"...","tokens":12345,"durationMs":123000}` on last stdout line
 - Implements retry with exponential backoff (3 retries, 30s base)
+
+## Configuration Files
+
+Two JSON configuration files control pipeline behavior. Both paths are set via constants in `constants.ts`. On managed instances, these files may be rendered by `jeeves-tools deploy`; for initial setup or standalone instances, the assistant creates them from operator input.
+
+### `pipeline-config.json`
+
+Location: set via `PIPELINE_CONFIG_PATH` in `constants.ts`.
+
+Loaded and validated by `pipeline-config.ts`. Configures accounts, domain-to-bucket routing, external service refs, and email behavior.
+
+**Schema:**
+
+```json
+{
+  "accounts": [
+    {
+      "email": "user@company.com",
+      "calendar": { "serviceAccount": "auto" },
+      "emailPolling": true
+    }
+  ],
+  "buckets": {
+    "domains": [
+      { "pattern": "company.com", "bucket": "internal" },
+      { "pattern": "vendor.com", "bucket": "vendor" }
+    ],
+    "priority": ["internal", "vendor", "external"]
+  },
+  "refs": {
+    "notion.socialPostsDatabaseId": "abc123...",
+    "slack.adminChannelId": "C0123..."
+  },
+  "emailConfig": {
+    "reportOnly": false,
+    "receipt": {
+      "forwardToOwner": true,
+      "sparkReceiptsForwardTo": "receipts@company.com"
+    },
+    "digest": {
+      "slackChannelId": "C0456..."
+    }
+  }
+}
+```
+
+**Fields:**
+
+- `accounts` — List of Google Workspace accounts. Each has `email`, optional `calendar` config (`{ "serviceAccount": "auto" }` or `{ "tokenFile": "path" }`), and `emailPolling` toggle.
+- `buckets.domains` — Maps email domains to classification buckets. `pattern` is matched case-insensitively.
+- `buckets.priority` — Ordered bucket names (lower index = higher priority).
+- `refs` — Named references to external service IDs accessed via `getRef('dotted.key')`.
+- `emailConfig.reportOnly` — When `true`, email triage logs actions without executing them.
+- `emailConfig.receipt` — Receipt forwarding settings.
+- `emailConfig.digest` — Slack channel for email digest delivery.
+
+### `silo-routing.json`
+
+Location: set via `SILO_ROUTING_CONFIG_PATH` in `constants.ts`.
+
+Loaded and validated by `silo-router.ts`. Routes pipeline output to the correct base content path per tenant. Single-tenant instances can omit this file — `silo-router.ts` defaults to `CONTENT_DIR`.
+
+**Schema:**
+
+```json
+{
+  "defaultBasePath": "/opt/jeeves/content",
+  "silos": {
+    "acme": {
+      "emailDomains": ["acme.com", "acme.co.uk"],
+      "githubOrgs": ["acme-corp", { "githubOrg": "acme-oss", "relativePath": "oss" }],
+      "slackWorkspaces": ["T0ABC123"],
+      "basePath": "/opt/jeeves/content/acme"
+    }
+  }
+}
+```
+
+**Fields:**
+
+- `defaultBasePath` — Fallback path when no silo matches. Defaults to `CONTENT_DIR`.
+- `silos` — Named tenant configurations. Each silo maps:
+  - `emailDomains` — Email domains that belong to this tenant.
+  - `githubOrgs` — GitHub orgs for this tenant. Plain strings use the silo's `basePath` directly; objects with `{ "githubOrg": "...", "relativePath": "..." }` append a relative subdirectory.
+  - `slackWorkspaces` — Slack team IDs (e.g., `T0ABC123`) for this tenant.
+  - `basePath` — Absolute base path for all content routed to this silo.

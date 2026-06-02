@@ -76,7 +76,7 @@ Both patterns ultimately call `runDispatcher()` which spawns a gateway worker se
 - Gateway API accessible (`GATEWAY_HOST`, `GATEWAY_PORT`)
 - `SPAWN_WORKER_PATH` pointing to `spawn-worker.ts`
 - TASK.md files present in expected content directories
-- For social-posts: Notion database ID and Slack channels configured in pipeline-config refs
+- For social-posts: Notion database ID and Slack channels configured in pipeline-config refs (see `src/lib/README.md` § Configuration Files for `pipeline-config.json` schema and creation instructions)
 
 ## Key Files
 
