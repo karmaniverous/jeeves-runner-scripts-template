@@ -47,7 +47,7 @@ poll  →  classify (receipt/junk/bucket)  →  enqueue email-pending + email-up
 ## Prerequisites
 
 - Gmail OAuth configured via `gog` CLI
-- Email accounts listed in `pipeline-config.json` with `emailPolling: true` (see `src/lib/README.md` § Configuration Files for schema and creation instructions)
+- Email accounts listed in `pipeline-config.json` with `emailPolling: true` (see [Configuration Files](../lib/README.md#configuration-files) for schema and creation instructions)
 - `GOG_CLIENT_PATH` set in `constants.ts`
 
 | Job | Schedule |

@@ -52,5 +52,5 @@ watch  →  notification state  →  escalation queue (review requests, mentions
 | File | Purpose |
 |------|---------|
 | `../lib/gh.ts` | GitHub CLI wrappers — `gh()`, `ghJson()`, `ghApi()`, `setupGhConfig()` |
-| `../lib/silo-router.ts` | `getBasePathForGitHubOrg()` for org-based output routing (see `src/lib/README.md` § Configuration Files for `silo-routing.json` schema) |
+| `../lib/silo-router.ts` | `getBasePathForGitHubOrg()` for org-based output routing (see [Configuration Files](../lib/README.md#configuration-files) for `silo-routing.json` schema) |
 | `../lib/constants.ts` | GitHub-specific constants (accounts, paths, registry location) |

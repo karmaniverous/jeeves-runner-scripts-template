@@ -23,7 +23,7 @@ pipeline-config (accounts)  →  poll.ts  →  Google Calendar API  →  per-eve
 ## Prerequisites
 
 - Google Calendar OAuth configured via `gog` CLI
-- Calendar accounts listed in `pipeline-config.json` (see `src/lib/README.md` § Configuration Files for schema and creation instructions)
+- Calendar accounts listed in `pipeline-config.json` (see [Configuration Files](../lib/README.md#configuration-files) for schema and creation instructions)
 - `GOG_CLIENT_PATH` and `GOG_CONFIG_DIR` set in `constants.ts`
 
 | Job | Schedule |
