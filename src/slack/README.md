@@ -40,4 +40,4 @@ Bot tokens  →  auto-discover channels  →  fetch history + thread replies  �
 |------|---------|
 | `lib/slack-api.ts` | Typed Slack Web API wrappers — `fetchHistory()`, `fetchReplies()`, `discoverChannels()`, `slackApi()` with pagination |
 | `../lib/constants.ts` | Workspace routing constants |
-| `../lib/silo-router.ts` | `getBasePathForSlackWorkspace()` for output directory routing |
+| `../lib/silo-router.ts` | `getBasePathForSlackWorkspace()` for output directory routing (see [Configuration Files](../lib/README.md#configuration-files) for `silo-routing.json` schema) |
