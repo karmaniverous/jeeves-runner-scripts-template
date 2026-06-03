@@ -10,6 +10,7 @@ Token metrics collection, session cost management, and OpenClaw post-install pat
 | `session-refresh.ts` | Rotates bloated gateway sessions by resetting idle sessions with high cacheRead values |
 | `token-metrics.ts` | Queries pre-rolled hourly buckets and aggregates into a cost report for a given time range (also a CLI: `tsx src/admin/token-metrics.ts [--from ISO] [--to ISO]`) |
 | `refresh-token-rates.ts` | Dispatches an LLM session to fetch current published API pricing and update the rate card config |
+| `recalculate-token-metrics.ts` | Safe recalculation of token metrics for a date range with backup and dry-run support |
 | `patch-openclaw.ts` | Orchestrator that runs all OpenClaw post-install patches in sequence |
 | `patch-tool-order.ts` | Patches OpenClaw's toolOrder array to insert Jeeves component tools above grep |
 
