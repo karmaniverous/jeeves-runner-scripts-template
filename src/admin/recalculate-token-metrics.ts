@@ -21,14 +21,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { getArg, readJson, runScript } from '@karmaniverous/jeeves';
+import { getArg, runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
 import {
   SESSIONS_DIR,
   TOKEN_METRICS_CC_CURSOR_KEY,
   TOKEN_METRICS_CURSOR_KEY,
-  TOKEN_METRICS_DIR,
   TOKEN_METRICS_NAMESPACE,
 } from '../lib/constants.js';
 import {
@@ -87,8 +86,7 @@ function parseUsageLine(line: string): {
   if (!usage.cost && !usage.totalTokens) return null;
 
   const model = typeof msg.model === 'string' ? msg.model : 'unknown';
-  const provider =
-    typeof msg.provider === 'string' ? msg.provider : 'unknown';
+  const provider = typeof msg.provider === 'string' ? msg.provider : 'unknown';
 
   let tsMs: number;
   const outerTs = parsed.timestamp;
@@ -352,9 +350,7 @@ function recalculate(): void {
 
   const cutoffMs = currentHourBoundaryMs();
   const fromMs = fromArg ? new Date(fromArg).getTime() : 0;
-  const toMs = toArg
-    ? Math.min(new Date(toArg).getTime(), cutoffMs)
-    : cutoffMs;
+  const toMs = toArg ? Math.min(new Date(toArg).getTime(), cutoffMs) : cutoffMs;
 
   if (isNaN(fromMs) || isNaN(toMs)) {
     console.error('[recalc] Invalid date argument.');
