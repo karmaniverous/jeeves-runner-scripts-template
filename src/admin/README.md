@@ -12,7 +12,6 @@ Token metrics collection, session cost management, and OpenClaw post-install pat
 | `refresh-token-rates.ts` | Dispatches an LLM session to fetch current published API pricing and update the rate card config |
 | `patch-openclaw.ts` | Orchestrator that runs all OpenClaw post-install patches in sequence |
 | `patch-tool-order.ts` | Patches OpenClaw's toolOrder array to insert Jeeves component tools above grep |
-| `patch-spawn-description.ts` | Patches OpenClaw's describeSessionsSpawnTool to prepend a Claude Code gate instruction |
 
 ## Data Flow
 
@@ -22,7 +21,7 @@ collect-token-metrics  →  hourly bucket JSON files  →  token-metrics (query/
 
 session-refresh  →  gateway API (refresh idle/oversized sessions)
 
-patch-openclaw  →  patch-tool-order + patch-spawn-description (post npm install -g openclaw)
+patch-openclaw  →  patch-tool-order (post npm install -g openclaw)
 ```
 
 - **collect-token-metrics** incrementally scans JSONL transcripts (OpenClaw + Claude Code), rolls usage into per-hour bucket files partitioned by channel and model.

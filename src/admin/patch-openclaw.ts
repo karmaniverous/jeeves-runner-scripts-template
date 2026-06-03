@@ -5,7 +5,7 @@
  * Orchestrator: run all OpenClaw post-install patches in sequence.
  *
  * Designed to run after every `npm install -g openclaw@latest`.
- * Invokes patch-tool-order and patch-spawn-description as child processes.
+ * Invokes patch-tool-order as a child process.
  */
 
 import { execSync } from 'node:child_process';
@@ -17,7 +17,7 @@ import { runScript } from '@karmaniverous/jeeves';
 // ── Config ─────────────────────────────────────────────────────────────
 
 /** Patch scripts to run, in order. */
-const PATCHES = ['patch-tool-order.ts', 'patch-spawn-description.ts'];
+const PATCHES = ['patch-tool-order.ts'];
 
 // ── Core logic ─────────────────────────────────────────────────────────
 
