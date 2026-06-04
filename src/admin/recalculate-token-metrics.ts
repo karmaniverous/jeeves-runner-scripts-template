@@ -191,12 +191,12 @@ function resetCursorsForRange(
   for (const [key, cursor] of Object.entries(cursors)) {
     // If the cursor's last timestamp is before the from boundary,
     // keep it as-is (data before range is untouched).
-    if (cursor.lastTimestamp * 1000 < fromMs) {
+    if (cursor.lastTimestamp < fromMs) {
       reset[key] = cursor;
     } else {
       // Reset: set byte offset to 0 so the file is re-scanned from the start.
       // The collector will re-process the file and only emit records in range.
-      reset[key] = { byteOffset: 0, lastTimestamp: 0 };
+      reset[key] = { byteOffset: 0, lastTimestamp: cursor.lastTimestamp };
     }
   }
   return reset;
