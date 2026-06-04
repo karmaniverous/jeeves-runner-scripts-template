@@ -25,7 +25,6 @@ import { getArg, runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
 import {
-  SESSIONS_DIR,
   TOKEN_METRICS_CC_CURSOR_KEY,
   TOKEN_METRICS_CURSOR_KEY,
   TOKEN_METRICS_NAMESPACE,
@@ -34,97 +33,11 @@ import {
   bucketPath,
   currentHourBoundaryMs,
   flushBuckets,
-  mergeUsage,
   tsToHour,
 } from './lib/bucket-io.js';
-import { detectChannel, registerChannelName } from './lib/channel-mapper.js';
-import { listCCSessionFiles, parseCCLine } from './lib/claude-code-scanner.js';
-import { computeCosts, loadRateCard } from './lib/rate-card.js';
-import type {
-  CursorState,
-  HourlyBucket,
-  TokenCategory,
-} from './types/token-metrics.js';
-import { TOKEN_CATEGORIES } from './types/token-metrics.js';
-
-// ── Helpers (shared with collect-token-metrics) ─────────────────────
-
-interface RawUsage {
-  input?: number;
-  output?: number;
-  cacheRead?: number;
-  cacheWrite?: number;
-  totalTokens?: number;
-  cost?: {
-    input?: number;
-    output?: number;
-    cacheRead?: number;
-    cacheWrite?: number;
-    total?: number;
-  };
-}
-
-function parseUsageLine(line: string): {
-  tsMs: number;
-  model: string;
-  provider: string;
-  rawUsage: RawUsage;
-} | null {
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(line) as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-
-  if (parsed.type !== 'message') return null;
-
-  const msg = parsed.message as Record<string, unknown> | undefined;
-  if (!msg?.usage) return null;
-
-  const usage = msg.usage as RawUsage;
-  if (!usage.cost && !usage.totalTokens) return null;
-
-  const model = typeof msg.model === 'string' ? msg.model : 'unknown';
-  const provider = typeof msg.provider === 'string' ? msg.provider : 'unknown';
-
-  let tsMs: number;
-  const outerTs = parsed.timestamp;
-  if (typeof outerTs === 'string') {
-    tsMs = new Date(outerTs).getTime();
-  } else if (typeof outerTs === 'number') {
-    tsMs = outerTs > 1e12 ? outerTs : outerTs * 1000;
-  } else {
-    const msgTs = msg.timestamp;
-    if (typeof msgTs === 'number') {
-      tsMs = msgTs > 1e12 ? msgTs : msgTs * 1000;
-    } else {
-      return null;
-    }
-  }
-
-  if (isNaN(tsMs)) return null;
-
-  return { tsMs, model, provider, rawUsage: usage };
-}
-
-function normalizeUsage(
-  raw: RawUsage,
-  modelKey: string,
-): Record<TokenCategory, { count: number; cost: number }> {
-  const counts = {} as Record<TokenCategory, number>;
-  for (const cat of TOKEN_CATEGORIES) {
-    const count = raw[cat];
-    counts[cat] = typeof count === 'number' ? count : 0;
-  }
-
-  const costs = computeCosts(modelKey, counts);
-  const result = {} as Record<TokenCategory, { count: number; cost: number }>;
-  for (const cat of TOKEN_CATEGORIES) {
-    result[cat] = { count: counts[cat], cost: costs[cat] };
-  }
-  return result;
-}
+import { loadRateCard } from './lib/rate-card.js';
+import { scanAllSessions } from './lib/session-scanner.js';
+import type { CursorState } from './types/token-metrics.js';
 
 // ── Enumerate hours in range ────────────────────────────────────────
 
@@ -202,145 +115,6 @@ function resetCursorsForRange(
   return reset;
 }
 
-// ── Collect for range (mirrors collect-token-metrics logic) ─────────
-
-function collectForRange(
-  fromMs: number,
-  cutoffMs: number,
-  cursors: CursorState,
-  ccCursors: CursorState,
-): { buckets: Map<string, HourlyBucket>; seenModels: Set<string> } {
-  const buckets = new Map<string, HourlyBucket>();
-  const seenModels = new Set<string>();
-
-  // ── OpenClaw sessions ──
-  const allFiles = fs.readdirSync(SESSIONS_DIR);
-  const sessionFiles = allFiles.filter(
-    (f) =>
-      f.endsWith('.jsonl') ||
-      f.includes('.jsonl.deleted.') ||
-      f.includes('.jsonl.reset.'),
-  );
-
-  for (const fileName of sessionFiles) {
-    const filePath = path.join(SESSIONS_DIR, fileName);
-    const stat = fs.statSync(filePath);
-    const cursor = cursors[fileName] as CursorState[string] | undefined;
-    const byteOffset = cursor?.byteOffset ?? 0;
-
-    if (byteOffset >= stat.size) continue;
-
-    const content = fs.readFileSync(filePath, 'utf8');
-    const allLines = content.split('\n');
-
-    const channelResult = detectChannel(allLines.slice(0, 50));
-    if (channelResult.key.startsWith('slack:channel:')) {
-      const name = channelResult.name;
-      if (name.startsWith('#')) {
-        registerChannelName(channelResult.key, name);
-      }
-    }
-
-    let bytePos = 0;
-    let maxProcessedTs = cursor?.lastTimestamp ?? 0;
-
-    for (const line of allLines) {
-      const lineByteLen = Buffer.byteLength(line, 'utf8') + 1;
-      const lineStart = bytePos;
-      bytePos += lineByteLen;
-
-      if (lineStart < byteOffset) continue;
-      if (!line.trim()) continue;
-
-      const parsed = parseUsageLine(line);
-      if (!parsed) continue;
-
-      // Only include records within range
-      if (parsed.tsMs < fromMs) continue;
-      if (parsed.tsMs >= cutoffMs) continue;
-
-      const modelKey = [parsed.provider, parsed.model].join('/');
-      seenModels.add(modelKey);
-      const usage = normalizeUsage(parsed.rawUsage, modelKey);
-      const hour = tsToHour(parsed.tsMs);
-
-      mergeUsage(buckets, hour, channelResult.key, modelKey, usage);
-
-      if (parsed.tsMs > maxProcessedTs) {
-        maxProcessedTs = parsed.tsMs;
-      }
-    }
-
-    cursors[fileName] = {
-      byteOffset: stat.size,
-      lastTimestamp: maxProcessedTs,
-    };
-  }
-
-  // ── Claude Code sessions ──
-  const ccFiles = listCCSessionFiles();
-
-  for (const ccFile of ccFiles) {
-    let stat: fs.Stats;
-    try {
-      stat = fs.statSync(ccFile.filePath);
-    } catch {
-      continue;
-    }
-
-    const cursor = ccCursors[ccFile.cursorKey] as
-      | CursorState[string]
-      | undefined;
-    const byteOffset = cursor?.byteOffset ?? 0;
-    if (byteOffset >= stat.size) continue;
-
-    const content = fs.readFileSync(ccFile.filePath, 'utf8');
-    const allLines = content.split('\n');
-
-    let bytePos = 0;
-    let maxProcessedTs = cursor?.lastTimestamp ?? 0;
-
-    for (const line of allLines) {
-      const lineByteLen = Buffer.byteLength(line, 'utf8') + 1;
-      const lineStart = bytePos;
-      bytePos += lineByteLen;
-
-      if (lineStart < byteOffset) continue;
-      if (!line.trim()) continue;
-
-      const record = parseCCLine(line);
-      if (!record) continue;
-
-      if (record.tsMs < fromMs) continue;
-      if (record.tsMs >= cutoffMs) continue;
-
-      seenModels.add(record.modelKey);
-      const usage = normalizeUsage(
-        {
-          input: record.usage.input,
-          output: record.usage.output,
-          cacheRead: record.usage.cacheRead,
-          cacheWrite: record.usage.cacheWrite,
-        },
-        record.modelKey,
-      );
-      const hour = tsToHour(record.tsMs);
-      mergeUsage(buckets, hour, ccFile.channelKey, record.modelKey, usage);
-
-      if (record.tsMs > maxProcessedTs) {
-        maxProcessedTs = record.tsMs;
-      }
-    }
-
-    ccCursors[ccFile.cursorKey] = {
-      byteOffset: stat.size,
-      lastTimestamp: maxProcessedTs,
-    };
-  }
-
-  return { buckets, seenModels };
-}
-
 // ── Main ────────────────────────────────────────────────────────────
 
 function recalculate(): void {
@@ -414,7 +188,7 @@ function recalculate(): void {
 
     // Re-collect for the range
     console.log('[recalc] Re-collecting...');
-    const { buckets, seenModels } = collectForRange(
+    const { buckets, seenModels } = scanAllSessions(
       fromMs,
       toMs,
       resetOC,
