@@ -47,6 +47,10 @@ No external prerequisites — all jobs run against local filesystem and gateway 
 | `lib/bucket-io.ts` | Hourly bucket file I/O — read, write, merge, flush |
 | `lib/channel-mapper.ts` | Maps session transcripts to channel keys (Slack, DM, heartbeat, subagent, meta-synthesis) |
 | `lib/claude-code-scanner.ts` | Scans Claude Code session JSONL files for Anthropic usage records |
+| `lib/patch-tool-order-utils.ts` | Pure helpers for toolOrder parsing and formatting |
 | `lib/rate-card.ts` | Token rate card loader and cost calculator ($/MTok) |
+| `lib/recalc-utils.ts` | Pure helpers for recalculation: hour enumeration and cursor reset logic |
 | `lib/resolve-openclaw-dist.ts` | Resolves global npm openclaw dist directory for patching |
+| `lib/session-scanner.ts` | Session file scanning with cursor management and range filtering (shared by collector and recalculator) |
+| `lib/usage-parser.ts` | OpenClaw transcript line parser and usage normalizer (shared by collector and recalculator) |
 | `types/token-metrics.ts` | Shared types across collector and query layers |
