@@ -33,26 +33,11 @@ import {
   bucketPath,
   currentHourBoundaryMs,
   flushBuckets,
-  tsToHour,
 } from './lib/bucket-io.js';
 import { loadRateCard } from './lib/rate-card.js';
+import { enumHours, resetCursorsForRange } from './lib/recalc-utils.js';
 import { scanAllSessions } from './lib/session-scanner.js';
 import type { CursorState } from './types/token-metrics.js';
-
-// ── Enumerate hours in range ────────────────────────────────────────
-
-function enumHours(fromMs: number, toMs: number): string[] {
-  const hours: string[] = [];
-  const cursor = new Date(fromMs);
-  cursor.setUTCMinutes(0, 0, 0);
-  const end = new Date(toMs);
-
-  while (cursor.getTime() <= end.getTime()) {
-    hours.push(tsToHour(cursor.getTime()));
-    cursor.setUTCHours(cursor.getUTCHours() + 1);
-  }
-  return hours;
-}
 
 // ── Backup ──────────────────────────────────────────────────────────
 
@@ -92,27 +77,6 @@ function deleteBucketFiles(hours: string[], dryRun: boolean): number {
     deleted++;
   }
   return deleted;
-}
-
-// ── Reset cursors for the targeted range ────────────────────────────
-
-function resetCursorsForRange(
-  cursors: CursorState,
-  fromMs: number,
-): CursorState {
-  const reset: CursorState = {};
-  for (const [key, cursor] of Object.entries(cursors)) {
-    // If the cursor's last timestamp is before the from boundary,
-    // keep it as-is (data before range is untouched).
-    if (cursor.lastTimestamp < fromMs) {
-      reset[key] = cursor;
-    } else {
-      // Reset: set byte offset to 0 so the file is re-scanned from the start.
-      // The collector will re-process the file and only emit records in range.
-      reset[key] = { byteOffset: 0, lastTimestamp: cursor.lastTimestamp };
-    }
-  }
-  return reset;
 }
 
 // ── Main ────────────────────────────────────────────────────────────
