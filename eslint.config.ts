@@ -39,6 +39,19 @@ export default [
   },
   eslint.configs.recommended,
   {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        exports: 'writable',
+        module: 'readonly',
+        require: 'readonly',
+      },
+    },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       parser: tseslint.parser,

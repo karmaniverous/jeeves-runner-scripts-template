@@ -16,6 +16,10 @@ import path from 'node:path';
 
 import { runScript } from '@karmaniverous/jeeves';
 
+import {
+  buildToolOrderString,
+  parseToolOrder,
+} from './lib/patch-tool-order-utils.js';
 import { resolveOpenClawDist } from './lib/resolve-openclaw-dist.js';
 
 // ── Config ─────────────────────────────────────────────────────────────
@@ -53,36 +57,6 @@ function findToolOrderFile(distDir: string): string | null {
   }
 
   return null;
-}
-
-/**
- * Parse the toolOrder array from file content.
- * Returns the full match string and the parsed tool names.
- */
-function parseToolOrder(content: string): {
-  match: string;
-  tools: string[];
-} | null {
-  const re = /toolOrder\s*=\s*\[([\s\S]*?)\]/;
-  const m = re.exec(content);
-
-  if (!m) return null;
-
-  const tools = m[1]
-    .split(',')
-    .map((s) => s.trim().replace(/^["']|["']$/g, ''))
-    .filter(Boolean);
-
-  return { match: m[0], tools };
-}
-
-/**
- * Build the patched toolOrder array string, preserving the original
- * formatting (tab-indented, one tool per line).
- */
-function buildToolOrderString(tools: string[]): string {
-  const entries = tools.map((t) => `\t\t"${t}"`).join(',\n');
-  return `toolOrder = [\n${entries}\n\t]`;
 }
 
 // ── Core logic ─────────────────────────────────────────────────────────
@@ -160,7 +134,7 @@ function patchToolOrder(): void {
   );
 
   // Replace in file content.
-  const patchedString = buildToolOrderString(patched);
+  const patchedString = buildToolOrderString(parsed.prefix, patched);
   const newContent = content.replace(parsed.match, patchedString);
 
   // Atomic write.

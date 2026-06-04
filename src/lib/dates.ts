@@ -13,7 +13,7 @@
 import {
   differenceInCalendarDays,
   format,
-  formatDistanceToNow,
+  formatDistance,
   parseISO,
 } from 'date-fns';
 
@@ -54,5 +54,5 @@ export function relativeDays(dateStr: string, referenceStr?: string): string {
   if (diff === 1) return 'tomorrow';
   if (diff === -1) return 'yesterday';
 
-  return formatDistanceToNow(target, { addSuffix: true });
+  return formatDistance(target, reference, { addSuffix: true });
 }
