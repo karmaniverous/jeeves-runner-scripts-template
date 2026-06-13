@@ -10,6 +10,7 @@ import {
   getRef,
   loadPipelineConfig,
   resetPipelineConfig,
+  tryGetRef,
 } from './pipeline-config.js';
 
 const VALID_CONFIG = {
@@ -123,6 +124,16 @@ describe('pipeline-config', () => {
       expect(() => getRef('missing.key')).toThrow(
         'Missing pipeline config ref: missing.key',
       );
+    });
+  });
+
+  describe('tryGetRef', () => {
+    it('returns the value for a known key', () => {
+      expect(tryGetRef('notion.inboxId')).toBe('abc-123');
+    });
+
+    it('returns empty string for a missing key', () => {
+      expect(tryGetRef('missing.key')).toBe('');
     });
   });
 
