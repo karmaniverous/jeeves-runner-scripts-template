@@ -6,8 +6,72 @@ Framework for autonomous LLM task dispatchers that read Markdown task files and 
 
 | Script | Description |
 |--------|-------------|
-| `daily-digest.ts` | Reads `{CONTENT_DIR}/digest/TASK.md` and dispatches a gateway session to generate and publish a daily digest. Injects authoritative date context. |
-| `social-posts.ts` | Dynamically builds a task from pipeline-config refs and content paths, then dispatches a session to generate social media posts to a Notion database. |
+| `daily-digest.ts` | Reads `{CONTENT_DIR}/digest/TASK.md` and dispatches a gateway session to generate and publish a daily digest. Injects authoritative date context. Prerequisite: TASK.md must exist. |
+| `social-posts.ts` | Dynamically builds a task from pipeline-config refs and content paths, then dispatches a session to generate social media posts to a Notion database. Prerequisite: `notion.socialPostsDatabaseId`, `slack.socialChannel`, `slack.operatorDm` refs in pipeline-config. |
+
+## Activation
+
+Dispatchers are **not** included in the `jobs/` manifests. They are registered as runner jobs manually per instance, because each instance's dispatcher configuration (task content, schedule, channels) is unique.
+
+To activate a dispatcher:
+
+1. Ensure prerequisites are met (see each script's module-level JSDoc)
+2. For static dispatchers (`daily-digest`): create the TASK.md file with your standing orders
+3. For dynamic dispatchers (`social-posts`): populate the required `pipeline-config.json` refs
+4. Register as a runner job: `runner_create_job({ id: 'generate-daily-digest', script: 'src/dispatchers/daily-digest.ts', schedule: { freq: 'daily', byhour: 6 }, ... })`
+
+## Creating a New Dispatcher
+
+### Static Task Dispatcher (reads a TASK.md file)
+
+```typescript
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { CONTENT_DIR } from '../lib/constants.js';
+import { taskFileDispatcher } from './lib/task-file-dispatcher.js';
+
+const taskFile = path.join(CONTENT_DIR, 'my-domain/TASK.md');
+
+if (!fs.existsSync(taskFile)) {
+  console.log(`[skip] Not configured — create ${taskFile}`);
+  process.exit(0);
+}
+
+taskFileDispatcher({
+  scriptName: 'dispatchers/my-dispatcher',
+  jobId: 'my-dispatcher-job',
+  taskFile,
+  thinking: 'low',
+  timeout: 600,
+  injectDateContext: true,
+});
+```
+
+### Dynamic Task Dispatcher (builds task at runtime)
+
+```typescript
+import { runScript } from '@karmaniverous/jeeves';
+import { runDispatcher } from '@karmaniverous/jeeves-runner';
+
+import { CONTENT_DIR, SPAWN_WORKER_PATH } from '../lib/constants.js';
+import { getRef } from '../lib/pipeline-config.js';
+
+function buildTask(): string {
+  const channel = getRef('slack.myChannel');
+  if (!channel) throw new Error('Missing slack.myChannel in pipeline-config');
+  return `Do the work. Post results to ${channel}.`;
+}
+
+runScript('dispatchers/my-dispatcher', () => {
+  const requiredRef = getRef('slack.myChannel');
+  if (!requiredRef) {
+    console.log('[skip] Not configured — set slack.myChannel in pipeline-config.json');
+    return;
+  }
+  runDispatcher(buildTask(), { jobId: 'my-job', thinking: 'low', timeout: 600 }, SPAWN_WORKER_PATH);
+});
+```
 
 ## Task-File-Dispatcher Framework
 
@@ -17,21 +81,6 @@ The core framework lives in `lib/task-file-dispatcher.ts`. It provides a generic
 2. Optionally inject date/timezone context as a quoted block
 3. Wrap execution in `runScript()` for error handling
 4. Delegate to `runDispatcher()` from jeeves-runner with `SPAWN_WORKER_PATH`
-
-### Usage
-
-```typescript
-import { taskFileDispatcher } from './lib/task-file-dispatcher.js';
-
-taskFileDispatcher({
-  taskFile: path.join(CONTENT_DIR, 'my-domain/TASK.md'),
-  scriptName: 'dispatchers/my-dispatcher',
-  jobId: 'my-dispatcher-job',
-  thinking: 'low',
-  timeout: 600,
-  injectDateContext: true,
-});
-```
 
 ### Options
 
@@ -62,21 +111,11 @@ When `injectDateContext: true`, the framework prepends:
 > **Today is Monday, 2025-05-19 (Asia/Makassar).** Use this as the authoritative date reference...
 ```
 
-## Standing Orders Convention
-
-Dispatchers implement a "standing orders" pattern:
-
-- **Static tasks** (daily-digest): Read a fixed TASK.md file that rarely changes. The LLM session follows the standing orders each run.
-- **Dynamic tasks** (social-posts): Build the task string at runtime from configuration refs, content paths, and business rules. The `buildTask()` function constructs the full instruction set.
-
-Both patterns ultimately call `runDispatcher()` which spawns a gateway worker session to execute the task autonomously.
-
 ## Prerequisites
 
 - Gateway API accessible (`GATEWAY_HOST`, `GATEWAY_PORT`)
 - `SPAWN_WORKER_PATH` pointing to `spawn-worker.ts`
-- TASK.md files present in expected content directories
-- For social-posts: Notion database ID and Slack channels configured in pipeline-config refs (see [Configuration Files](../lib/README.md#configuration-files) for `pipeline-config.json` schema and creation instructions)
+- Per-dispatcher prerequisites documented in each script's module-level JSDoc
 
 ## Key Files
 
