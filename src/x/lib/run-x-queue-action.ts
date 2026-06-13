@@ -38,7 +38,13 @@ export interface XQueueActionOptions {
 export function runXQueueAction(options: XQueueActionOptions): void {
   async function main(): Promise<void> {
     const argv = process.argv.slice(2);
-    const handle = argv[0] || getArg(argv, '--handle', 'karmaniverous');
+    const handle = argv[0] || getArg(argv, '--handle', '');
+    if (!handle) {
+      console.log(
+        `[skip] No X account handle provided for ${options.actionLabel}`,
+      );
+      return;
+    }
     const maxItems = Number(getArg(argv, '--maxItems', '50'));
     const queueName = getArg(
       argv,
@@ -83,7 +89,13 @@ export function runXQueueAction(options: XQueueActionOptions): void {
 
   runScript(options.scriptName, () => {
     const argv = process.argv.slice(2);
-    const handle = argv[0] || getArg(argv, '--handle', 'karmaniverous');
+    const handle = argv[0] || getArg(argv, '--handle', '');
+    if (!handle) {
+      console.log(
+        '[skip] No X account handle provided. Usage: tsx <script> <handle>',
+      );
+      return;
+    }
 
     if (!fs.existsSync(getOAuthPath(handle))) {
       console.log('[skip] X OAuth2 credentials not configured');

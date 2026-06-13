@@ -40,7 +40,13 @@ export interface PollXOptions {
  */
 export async function pollXItems(options: PollXOptions): Promise<void> {
   const argv = process.argv.slice(2);
-  const handle = argv[0] || getArg(argv, '--handle', 'karmaniverous');
+  const handle = argv[0] || getArg(argv, '--handle', '');
+  if (!handle) {
+    console.log(
+      `[skip] No X account handle provided for ${options.queuePrefix} poll`,
+    );
+    return;
+  }
   const count = Number(
     getArg(argv, '--count', String(options.defaultCount ?? 50)),
   );
@@ -95,7 +101,13 @@ export async function pollXItems(options: PollXOptions): Promise<void> {
  */
 export function runXPoller(scriptName: string, options: PollXOptions): void {
   runScript(scriptName, () => {
-    const handle = process.argv[2] || 'karmaniverous';
+    const handle = process.argv[2];
+    if (!handle) {
+      console.log(
+        '[skip] No X account handle provided. Usage: tsx <script> <handle>',
+      );
+      return;
+    }
 
     if (!fs.existsSync(getOAuthPath(handle))) {
       console.log('[skip] X OAuth2 credentials not configured');

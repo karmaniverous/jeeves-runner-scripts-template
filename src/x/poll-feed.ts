@@ -24,7 +24,13 @@ import {
   withAutoRefresh,
 } from './lib/x-api.js';
 
-const handle = process.argv[2] || 'karmaniverous';
+const handle = process.argv[2];
+if (!handle) {
+  console.log(
+    '[skip] No X account handle provided. Usage: tsx poll-feed.ts <handle>',
+  );
+  process.exit(0);
+}
 const FEED_DIR = path.join(X_ACCOUNTS[handle], 'feed');
 const PRUNE_DAYS = 7;
 

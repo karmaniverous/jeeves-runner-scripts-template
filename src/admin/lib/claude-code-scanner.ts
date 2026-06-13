@@ -23,17 +23,16 @@ const PROJECT_CHANNEL_MAP: Record<string, { key: string; name: string }> = {};
 /**
  * Derive a channel key from a Claude Code project directory name.
  *
- * Directory names look like `D--repos-karmaniverous-jeeves-watcher`.
+ * Directory names look like `D--repos-myorg-my-project`.
  * We extract a human-readable project name and prefix with `cc:`.
  */
 function projectToChannel(dirName: string): { key: string; name: string } {
   if (dirName in PROJECT_CHANNEL_MAP) return PROJECT_CHANNEL_MAP[dirName];
 
-  // Strip drive prefix (e.g. D--repos-) and common org prefixes
-  let name = dirName
-    .replace(/^[A-Z]--repos-/, '')
-    .replace(/^karmaniverous-/, '')
-    .replace(/^veterancrowd-/i, 'vc-');
+  // Strip drive prefix (e.g. D--repos-) and leading org segment
+  let name = dirName.replace(/^[A-Z]--repos-/, '');
+  // Strip first path segment if it looks like an org prefix (word-chars + hyphen)
+  name = name.replace(/^[\w]+-/, '');
 
   // Special case: the J--jeeves workspace
   if (dirName === 'J--jeeves') name = 'jeeves-workspace';
@@ -145,7 +144,7 @@ export function parseCCLine(line: string): CCUsageRecord | null {
 export interface CCSessionFile {
   /** Full filesystem path. */
   filePath: string;
-  /** Relative key for cursor tracking (e.g. `D--repos-karmaniverous-jeeves-watcher/abc123.jsonl`). */
+  /** Relative key for cursor tracking (e.g. `D--repos-myorg-my-project/abc123.jsonl`). */
   cursorKey: string;
   /** Channel key for bucket attribution. */
   channelKey: string;

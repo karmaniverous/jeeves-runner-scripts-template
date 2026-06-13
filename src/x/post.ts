@@ -19,7 +19,13 @@ import { runScript } from '@karmaniverous/jeeves';
 import { X_ACCOUNTS } from '../lib/constants.js';
 import { createPost, getOAuthPath, withAutoRefresh } from './lib/x-api.js';
 
-const handle = process.argv[2] || 'karmaniverous';
+const handle = process.argv[2];
+if (!handle) {
+  console.log(
+    '[skip] No X account handle provided. Usage: tsx post.ts <handle>',
+  );
+  process.exit(0);
+}
 const QUEUE_DIR = path.join(X_ACCOUNTS[handle], 'queue');
 const DONE_DIR = path.join(QUEUE_DIR, 'done');
 const FAILED_DIR = path.join(QUEUE_DIR, 'failed');

@@ -155,13 +155,13 @@ describe('stripLeadingTranscriptChrome', () => {
     const text = [
       '',
       'Resume Auto-Scroll',
-      'VeteranCrowd',
+      'Acme Corp',
       '',
       "There's Rachel.",
     ].join('\n');
 
     expect(stripLeadingTranscriptChrome(text)).toBe(
-      "VeteranCrowd\n\nThere's Rachel.",
+      "Acme Corp\n\nThere's Rachel.",
     );
   });
 
