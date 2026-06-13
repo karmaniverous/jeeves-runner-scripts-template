@@ -26,10 +26,17 @@ if (!handle) {
   );
   process.exit(0);
 }
-const QUEUE_DIR = path.join(X_ACCOUNTS[handle], 'queue');
+const accountDir = X_ACCOUNTS[handle];
+if (!accountDir) {
+  console.log(
+    `[skip] X account '${handle}' not configured in X_ACCOUNTS (constants.ts)`,
+  );
+  process.exit(0);
+}
+const QUEUE_DIR = path.join(accountDir, 'queue');
 const DONE_DIR = path.join(QUEUE_DIR, 'done');
 const FAILED_DIR = path.join(QUEUE_DIR, 'failed');
-const POSTS_DIR = path.join(X_ACCOUNTS[handle], 'posts');
+const POSTS_DIR = path.join(accountDir, 'posts');
 const MAX_RETRIES = 3;
 
 async function main(): Promise<void> {

@@ -29,10 +29,10 @@ const PROJECT_CHANNEL_MAP: Record<string, { key: string; name: string }> = {};
 function projectToChannel(dirName: string): { key: string; name: string } {
   if (dirName in PROJECT_CHANNEL_MAP) return PROJECT_CHANNEL_MAP[dirName];
 
-  // Strip drive prefix (e.g. D--repos-) and leading org segment
+  // Strip drive prefix (e.g. D--repos-myorg-my-project → myorg-my-project).
+  // We keep the full remaining name including the org segment because
+  // org-project boundary is ambiguous for hyphenated org names.
   let name = dirName.replace(/^[A-Z]--repos-/, '');
-  // Strip first path segment if it looks like an org prefix (word-chars + hyphen)
-  name = name.replace(/^[\w]+-/, '');
 
   // Special case: the J--jeeves workspace
   if (dirName === 'J--jeeves') name = 'jeeves-workspace';

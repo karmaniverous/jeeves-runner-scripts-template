@@ -31,7 +31,14 @@ if (!handle) {
   );
   process.exit(0);
 }
-const FEED_DIR = path.join(X_ACCOUNTS[handle], 'feed');
+const accountDir = X_ACCOUNTS[handle];
+if (!accountDir) {
+  console.log(
+    `[skip] X account '${handle}' not configured in X_ACCOUNTS (constants.ts)`,
+  );
+  process.exit(0);
+}
+const FEED_DIR = path.join(accountDir, 'feed');
 const PRUNE_DAYS = 7;
 
 function writeFeedItems(

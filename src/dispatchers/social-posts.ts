@@ -30,10 +30,19 @@ import { getRef } from '../lib/pipeline-config.js';
 
 const JOB_ID = 'generate-social-posts';
 
+/** Safe ref accessor — returns empty string instead of throwing when key is missing. */
+function tryGetRef(key: string): string {
+  try {
+    return getRef(key);
+  } catch {
+    return '';
+  }
+}
+
 function buildTask(): string {
-  const notionDb = getRef('notion.socialPostsDatabaseId');
-  const socialChannel = getRef('slack.socialChannel');
-  const operatorDm = getRef('slack.operatorDm');
+  const notionDb = tryGetRef('notion.socialPostsDatabaseId');
+  const socialChannel = tryGetRef('slack.socialChannel');
+  const operatorDm = tryGetRef('slack.operatorDm');
 
   if (!notionDb || !socialChannel || !operatorDm) {
     throw new Error(
@@ -66,7 +75,7 @@ ROUTING: Send your completion summary to operator DM (${operatorDm}). Do NOT pos
 }
 
 runScript('dispatchers/social-posts', () => {
-  const notionDb = getRef('notion.socialPostsDatabaseId');
+  const notionDb = tryGetRef('notion.socialPostsDatabaseId');
   if (!notionDb) {
     console.log(
       '[skip] Social posts dispatcher not configured — set notion.socialPostsDatabaseId in pipeline-config.json',

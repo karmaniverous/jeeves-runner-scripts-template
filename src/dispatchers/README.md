@@ -54,18 +54,22 @@ taskFileDispatcher({
 import { runScript } from '@karmaniverous/jeeves';
 import { runDispatcher } from '@karmaniverous/jeeves-runner';
 
-import { CONTENT_DIR, SPAWN_WORKER_PATH } from '../lib/constants.js';
+import { SPAWN_WORKER_PATH } from '../lib/constants.js';
 import { getRef } from '../lib/pipeline-config.js';
 
+// getRef() throws when a key is missing — use a safe wrapper for prerequisite checks
+function tryGetRef(key: string): string {
+  try { return getRef(key); } catch { return ''; }
+}
+
 function buildTask(): string {
-  const channel = getRef('slack.myChannel');
+  const channel = tryGetRef('slack.myChannel');
   if (!channel) throw new Error('Missing slack.myChannel in pipeline-config');
   return `Do the work. Post results to ${channel}.`;
 }
 
 runScript('dispatchers/my-dispatcher', () => {
-  const requiredRef = getRef('slack.myChannel');
-  if (!requiredRef) {
+  if (!tryGetRef('slack.myChannel')) {
     console.log('[skip] Not configured — set slack.myChannel in pipeline-config.json');
     return;
   }
