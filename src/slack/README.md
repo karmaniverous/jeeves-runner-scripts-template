@@ -41,3 +41,6 @@ Bot tokens  →  auto-discover channels  →  fetch history + thread replies  �
 | `lib/slack-api.ts` | Typed Slack Web API wrappers — `fetchHistory()`, `fetchReplies()`, `discoverChannels()`, `slackApi()` with pagination |
 | `../lib/constants.ts` | Workspace routing constants |
 | `../lib/silo-router.ts` | `getBasePathForSlackWorkspace()` for output directory routing (see [Configuration Files](../lib/README.md#configuration-files) for `silo-routing.json` schema) |
+| `lib/map-helpers.cjs` | CommonJS helper for mapping Slack channel/user IDs to names. Used by watcher inference rules for enriching indexed message metadata |
+| `lib/channels.json` | Cached channel metadata (sanitized stubs in template). Updated at runtime by `poll.ts` |
+| `lib/users.json` | Cached user ID → username mapping (sanitized stubs in template). Used by `poll.ts` for message enrichment |
