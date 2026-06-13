@@ -26,18 +26,9 @@ import { runScript } from '@karmaniverous/jeeves';
 import { runDispatcher } from '@karmaniverous/jeeves-runner';
 
 import { CONTENT_DIR, SPAWN_WORKER_PATH } from '../lib/constants.js';
-import { getRef } from '../lib/pipeline-config.js';
+import { tryGetRef } from '../lib/pipeline-config.js';
 
 const JOB_ID = 'generate-social-posts';
-
-/** Safe ref accessor — returns empty string instead of throwing when key is missing. */
-function tryGetRef(key: string): string {
-  try {
-    return getRef(key);
-  } catch {
-    return '';
-  }
-}
 
 function buildTask(): string {
   const notionDb = tryGetRef('notion.socialPostsDatabaseId');

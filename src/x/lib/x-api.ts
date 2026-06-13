@@ -17,7 +17,40 @@ import path from 'node:path';
 
 import { ApiError, Client, OAuth2 } from '@xdevplatform/xdk';
 
-import { X_OAUTH_DIR } from '../../lib/constants.js';
+import { X_ACCOUNTS, X_OAUTH_DIR } from '../../lib/constants.js';
+
+// ── Handle resolution ──────────────────────────────────────────────
+
+/**
+ * Parse the X account handle from CLI args. Logs a skip message and
+ * calls `process.exit(0)` if no handle is provided. When used at
+ * module top level, the `never` return ensures TS narrows correctly.
+ */
+export function requireXHandle(scriptName: string): string {
+  const handle = process.argv[2];
+  if (!handle) {
+    console.log(
+      `[skip] No X account handle provided. Usage: tsx ${scriptName} <handle>`,
+    );
+    process.exit(0);
+  }
+  return handle;
+}
+
+/**
+ * Resolve the X account content directory from X_ACCOUNTS. Logs a skip
+ * message and calls `process.exit(0)` if the handle is not configured.
+ */
+export function requireAccountDir(handle: string): string {
+  const dir = X_ACCOUNTS[handle];
+  if (!dir) {
+    console.log(
+      `[skip] X account '${handle}' not configured in X_ACCOUNTS (constants.ts)`,
+    );
+    process.exit(0);
+  }
+  return dir;
+}
 
 // ── OAuth JSON helpers ─────────────────────────────────────────────
 

@@ -16,23 +16,16 @@ import path from 'node:path';
 
 import { runScript } from '@karmaniverous/jeeves';
 
-import { X_ACCOUNTS } from '../lib/constants.js';
-import { createPost, getOAuthPath, withAutoRefresh } from './lib/x-api.js';
+import {
+  createPost,
+  getOAuthPath,
+  requireAccountDir,
+  requireXHandle,
+  withAutoRefresh,
+} from './lib/x-api.js';
 
-const handle = process.argv[2];
-if (!handle) {
-  console.log(
-    '[skip] No X account handle provided. Usage: tsx post.ts <handle>',
-  );
-  process.exit(0);
-}
-const accountDir = X_ACCOUNTS[handle];
-if (!accountDir) {
-  console.log(
-    `[skip] X account '${handle}' not configured in X_ACCOUNTS (constants.ts)`,
-  );
-  process.exit(0);
-}
+const handle = requireXHandle('post.ts');
+const accountDir = requireAccountDir(handle);
 const QUEUE_DIR = path.join(accountDir, 'queue');
 const DONE_DIR = path.join(QUEUE_DIR, 'done');
 const FAILED_DIR = path.join(QUEUE_DIR, 'failed');

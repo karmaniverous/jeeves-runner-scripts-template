@@ -16,28 +16,17 @@ import path from 'node:path';
 
 import { runScript } from '@karmaniverous/jeeves';
 
-import { X_ACCOUNTS } from '../lib/constants.js';
 import type { XTweet } from './lib/x-api.js';
 import {
   getOAuthPath,
   pollHomeTimeline,
+  requireAccountDir,
+  requireXHandle,
   withAutoRefresh,
 } from './lib/x-api.js';
 
-const handle = process.argv[2];
-if (!handle) {
-  console.log(
-    '[skip] No X account handle provided. Usage: tsx poll-feed.ts <handle>',
-  );
-  process.exit(0);
-}
-const accountDir = X_ACCOUNTS[handle];
-if (!accountDir) {
-  console.log(
-    `[skip] X account '${handle}' not configured in X_ACCOUNTS (constants.ts)`,
-  );
-  process.exit(0);
-}
+const handle = requireXHandle('poll-feed.ts');
+const accountDir = requireAccountDir(handle);
 const FEED_DIR = path.join(accountDir, 'feed');
 const PRUNE_DAYS = 7;
 

@@ -105,6 +105,19 @@ export function getRef(key: string): string {
   return config.refs[key];
 }
 
+/**
+ * Safe ref accessor — returns empty string instead of throwing when
+ * the key is missing. Use in prerequisite guards where you need to
+ * check whether a ref is configured without crashing.
+ */
+export function tryGetRef(key: string): string {
+  try {
+    return getRef(key);
+  } catch {
+    return '';
+  }
+}
+
 /** Accounts that have calendar config. */
 export function getCalendarAccounts(): AccountConfig[] {
   return loadPipelineConfig().accounts.filter((a) => a.calendar);

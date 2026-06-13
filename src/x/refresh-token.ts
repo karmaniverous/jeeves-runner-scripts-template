@@ -15,15 +15,13 @@
 
 import { runScript } from '@karmaniverous/jeeves';
 
-import { getOAuthPath, refreshOAuth2Token } from './lib/x-api.js';
+import {
+  getOAuthPath,
+  refreshOAuth2Token,
+  requireXHandle,
+} from './lib/x-api.js';
 
-const handle = process.argv[2];
-if (!handle) {
-  console.log(
-    '[skip] No X account handle provided. Usage: tsx refresh-token.ts <handle>',
-  );
-  process.exit(0);
-}
+const handle = requireXHandle('refresh-token.ts');
 
 async function main(): Promise<void> {
   console.log(`Refreshing X OAuth 2.0 token for @${handle}...`);
