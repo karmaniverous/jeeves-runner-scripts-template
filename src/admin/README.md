@@ -38,7 +38,10 @@ No external prerequisites — all jobs run against local filesystem and gateway 
 | `collect-token-metrics` | Every 97 min |
 | `session-refresh` | Every 23 min |
 | `refresh-token-rates` | Every 59 min |
-| `patch-tool-order` | Every 29 min |
+
+## Documentation
+
+- [Token Metrics Operational Runbook](../../docs/token-metrics-runbook.md) — pipeline stages, recalculation procedures, troubleshooting
 
 ## Key Files
 

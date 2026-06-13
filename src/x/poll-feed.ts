@@ -16,16 +16,18 @@ import path from 'node:path';
 
 import { runScript } from '@karmaniverous/jeeves';
 
-import { X_ACCOUNTS } from '../lib/constants.js';
 import type { XTweet } from './lib/x-api.js';
 import {
   getOAuthPath,
   pollHomeTimeline,
+  requireAccountDir,
+  requireXHandle,
   withAutoRefresh,
 } from './lib/x-api.js';
 
-const handle = process.argv[2] || 'karmaniverous';
-const FEED_DIR = path.join(X_ACCOUNTS[handle], 'feed');
+const handle = requireXHandle('poll-feed.ts');
+const accountDir = requireAccountDir(handle);
+const FEED_DIR = path.join(accountDir, 'feed');
 const PRUNE_DAYS = 7;
 
 function writeFeedItems(

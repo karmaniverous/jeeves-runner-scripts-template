@@ -3,8 +3,8 @@
  *
  * Shared entry-point wrapper for X queue-action scripts (like, repost).
  *
- * Handles credential check, client creation, queue draining, action
- * execution with per-item error handling, and runScript boilerplate.
+ * Handles handle parsing, credential check, client creation, queue draining,
+ * action execution with per-item error handling, and runScript boilerplate.
  */
 
 import fs from 'node:fs';
@@ -36,9 +36,8 @@ export interface XQueueActionOptions {
  * Entry-point wrapper for X queue-action scripts.
  */
 export function runXQueueAction(options: XQueueActionOptions): void {
-  async function main(): Promise<void> {
+  async function main(handle: string): Promise<void> {
     const argv = process.argv.slice(2);
-    const handle = argv[0] || getArg(argv, '--handle', 'karmaniverous');
     const maxItems = Number(getArg(argv, '--maxItems', '50'));
     const queueName = getArg(
       argv,
@@ -82,15 +81,20 @@ export function runXQueueAction(options: XQueueActionOptions): void {
   }
 
   runScript(options.scriptName, () => {
-    const argv = process.argv.slice(2);
-    const handle = argv[0] || getArg(argv, '--handle', 'karmaniverous');
+    const handle = process.argv[2];
+    if (!handle) {
+      console.log(
+        `[skip] No X account handle provided. Usage: tsx ${options.scriptName} <handle>`,
+      );
+      return;
+    }
 
     if (!fs.existsSync(getOAuthPath(handle))) {
       console.log('[skip] X OAuth2 credentials not configured');
       return;
     }
 
-    main().catch((err: unknown) => {
+    main(handle).catch((err: unknown) => {
       console.error(
         `${options.actionLabel}: FATAL`,
         err instanceof Error ? err.message : String(err),

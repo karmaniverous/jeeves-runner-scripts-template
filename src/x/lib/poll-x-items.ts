@@ -37,10 +37,15 @@ export interface PollXOptions {
 
 /**
  * Run a parameterized X poll: fetch items via API, enqueue to runner.
+ *
+ * @param handle - The X account handle to poll for.
+ * @param options - Poll configuration (API function, queue prefix, etc.).
  */
-export async function pollXItems(options: PollXOptions): Promise<void> {
+export async function pollXItems(
+  handle: string,
+  options: PollXOptions,
+): Promise<void> {
   const argv = process.argv.slice(2);
-  const handle = argv[0] || getArg(argv, '--handle', 'karmaniverous');
   const count = Number(
     getArg(argv, '--count', String(options.defaultCount ?? 50)),
   );
@@ -90,19 +95,25 @@ export async function pollXItems(options: PollXOptions): Promise<void> {
 }
 
 /**
- * Entry-point wrapper for X poll scripts. Handles credential check,
- * error handling, and runScript boilerplate.
+ * Entry-point wrapper for X poll scripts. Handles handle parsing,
+ * credential check, error handling, and runScript boilerplate.
  */
 export function runXPoller(scriptName: string, options: PollXOptions): void {
   runScript(scriptName, () => {
-    const handle = process.argv[2] || 'karmaniverous';
+    const handle = process.argv[2];
+    if (!handle) {
+      console.log(
+        `[skip] No X account handle provided. Usage: tsx ${scriptName} <handle>`,
+      );
+      return;
+    }
 
     if (!fs.existsSync(getOAuthPath(handle))) {
       console.log('[skip] X OAuth2 credentials not configured');
       return;
     }
 
-    pollXItems(options).catch((err: unknown) => {
+    pollXItems(handle, options).catch((err: unknown) => {
       console.error(
         `${scriptName}: FATAL`,
         err instanceof Error ? err.message : String(err),

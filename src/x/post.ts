@@ -16,14 +16,20 @@ import path from 'node:path';
 
 import { runScript } from '@karmaniverous/jeeves';
 
-import { X_ACCOUNTS } from '../lib/constants.js';
-import { createPost, getOAuthPath, withAutoRefresh } from './lib/x-api.js';
+import {
+  createPost,
+  getOAuthPath,
+  requireAccountDir,
+  requireXHandle,
+  withAutoRefresh,
+} from './lib/x-api.js';
 
-const handle = process.argv[2] || 'karmaniverous';
-const QUEUE_DIR = path.join(X_ACCOUNTS[handle], 'queue');
+const handle = requireXHandle('post.ts');
+const accountDir = requireAccountDir(handle);
+const QUEUE_DIR = path.join(accountDir, 'queue');
 const DONE_DIR = path.join(QUEUE_DIR, 'done');
 const FAILED_DIR = path.join(QUEUE_DIR, 'failed');
-const POSTS_DIR = path.join(X_ACCOUNTS[handle], 'posts');
+const POSTS_DIR = path.join(accountDir, 'posts');
 const MAX_RETRIES = 3;
 
 async function main(): Promise<void> {

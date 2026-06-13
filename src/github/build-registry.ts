@@ -18,6 +18,7 @@ import { ensureDir, nowIso, run, runScript } from '@karmaniverous/jeeves';
 
 import {
   CODEBASE_DIR,
+  GH_ACCOUNT,
   GH_BIN,
   GH_CONFIG_DIR,
   GITHUB_DIR,
@@ -54,18 +55,18 @@ interface GhRepo {
 function computeSocialPolicy(
   owner: string,
   isPrivate: boolean,
+  homeAccount: string,
 ): { socialUse: string; notes: string } {
   if (!isPrivate) return { socialUse: 'ok', notes: 'public repo' };
-  if (owner === 'karmaniverous')
+  if (homeAccount && owner === homeAccount)
     return {
       socialUse: 'caution',
-      notes:
-        'private but in karmaniverous scope; discuss before quoting verbatim',
+      notes: `private but in ${homeAccount} scope; discuss before quoting verbatim`,
     };
   return {
     socialUse: 'restricted',
     notes:
-      'private repo outside karmaniverous scope; do not use externally without explicit approval',
+      'private repo outside home scope; do not use externally without explicit approval',
   };
 }
 
@@ -115,7 +116,13 @@ function main(): void {
   ensureDir(GITHUB_DIR);
   console.log(`[repo-registry] start ${nowIso()}`);
 
-  run(GH_BIN, ['auth', 'switch', '-u', 'karmaniverous']);
+  const account = GH_ACCOUNT as string;
+  if (!account) {
+    console.log('[skip] GH_ACCOUNT not configured in constants.ts');
+    return;
+  }
+
+  run(GH_BIN, ['auth', 'switch', '-u', account]);
   const repos = getWriteRepos()
     .filter((r) => !r.archived && !r.disabled && !r.fork)
     .sort(
@@ -123,11 +130,7 @@ function main(): void {
         new Date(a.pushed_at).getTime() - new Date(b.pushed_at).getTime(),
     );
 
-  let scopes: Record<string, { external: boolean }> = {
-    karmaniverous: { external: false },
-    VeteranCrowd: { external: false },
-    'yielda-game': { external: false },
-  };
+  let scopes: Record<string, { external: boolean }> = {};
   try {
     const existing = JSON.parse(
       fs.readFileSync(GITHUB_REGISTRY_PATH, 'utf8'),
@@ -175,7 +178,7 @@ function main(): void {
 
   const reposObj: Record<string, unknown> = {};
   for (const r of allRepos) {
-    const pol = computeSocialPolicy(r.owner.login, r.private);
+    const pol = computeSocialPolicy(r.owner.login, r.private, account);
     reposObj[r.full_name] = {
       description: r.description,
       language: r.language,
@@ -209,7 +212,7 @@ function main(): void {
 
   // Backward compat: old array format
   const reposMeta = allRepos.map((r) => {
-    const pol = computeSocialPolicy(r.owner.login, r.private);
+    const pol = computeSocialPolicy(r.owner.login, r.private, account);
     return {
       nameWithOwner: r.full_name,
       owner: r.owner.login,
@@ -239,7 +242,7 @@ function main(): void {
     JSON.stringify(
       {
         generatedAt: nowIso(),
-        account: 'karmaniverous',
+        account,
         count: allRepos.length,
         repos: reposMeta,
       },

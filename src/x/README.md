@@ -34,12 +34,12 @@ post/like/repost
 
 ## Prerequisites
 
-- X API credentials: `X_CLIENT_ID` and `X_CLIENT_SECRET` in `constants.ts`
+- Per-account OAuth 2.0 PKCE credentials: JSON files under `X_OAUTH_DIR` (from `constants.ts`), named `x-{handle}-oauth2.json`, each containing `clientId`, `clientSecret`, `access_token`, and `refresh_token`
 - OAuth 2.0 PKCE tokens per account (generated via initial auth flow, refreshed by `refresh-token.ts`)
 - Account handles configured in `X_ACCOUNTS` in `constants.ts`
 
 ## Key Dependencies
 
 - `src/x/lib/` — X API client wrappers, OAuth token management, polling helpers
-- `src/lib/constants.ts` — `X_ACCOUNTS`, `X_CLIENT_ID`, `X_CLIENT_SECRET`
+- `src/lib/constants.ts` — `X_ACCOUNTS`, `X_OAUTH_DIR`
 - `src/lib/pipeline-config.ts` — additional X config references
