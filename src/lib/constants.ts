@@ -50,7 +50,7 @@ export const SCRIPTS_DIR = '/opt/jeeves/jeeves-scripts';
  * for the schema).
  */
 export const PIPELINE_CONFIG_PATH =
-  '/opt/jeeves/config/jeeves-core/pipeline-config.json';
+  '/opt/jeeves/jeeves-scripts/pipeline-config.json';
 
 // ========== Silo Routing [OPTIONAL] ==========
 
