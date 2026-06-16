@@ -16,7 +16,7 @@ Scripts connect to the runner via `getRunnerClient()`, which reads the `JR_DB_PA
 
 1. **Edit `src/lib/constants.ts`** — this is the one file to configure on a new instance. Fill in paths, credentials, and integration-specific values.
 2. **Run `npm install`**
-3. **Register runner jobs** — read `jobs/*.json` manifests and register via the runner API or onboarding skill.
+3. **Register runner jobs** — On managed instances, `jeeves-tools deploy` auto-registers core jobs (prerequisite: null) and syncs all job definitions via `npx jeeves-runner sync-jobs`. On standalone instances, read `jobs/*.json` manifests and register via the runner API or onboarding skill.
 
 ### Runner Configuration
 
