@@ -5,7 +5,8 @@
     "script": "src/admin/collect-token-metrics.ts",
     "schedule": {
       "freq": "minutely",
-      "interval": 97
+      "interval": 97,
+      "timezone": "UTC"
     },
     "description": "Incrementally scan OpenClaw session transcripts and write immutable hourly token-usage buckets.",
     "overlap_policy": "skip",
@@ -20,7 +21,8 @@
     "script": "src/admin/session-refresh.ts",
     "schedule": {
       "freq": "minutely",
-      "interval": 23
+      "interval": 23,
+      "timezone": "UTC"
     },
     "description": "Refresh idle or oversized OpenClaw sessions to manage context window costs.",
     "overlap_policy": "skip",
@@ -35,7 +37,8 @@
     "script": "src/admin/refresh-token-rates.ts",
     "schedule": {
       "freq": "minutely",
-      "interval": 59
+      "interval": 59,
+      "timezone": "UTC"
     },
     "description": "Aggregate token metric buckets into a single rates JSON file for dashboards and cost reporting.",
     "overlap_policy": "skip",

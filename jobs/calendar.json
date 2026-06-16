@@ -3,7 +3,7 @@
     "id": "calendar-poll",
     "name": "Calendar Poll",
     "script": "src/calendar/poll.ts",
-    "schedule": { "freq": "minutely", "interval": 17 },
+    "schedule": { "freq": "minutely", "interval": 17, "timezone": "UTC" },
     "description": "Poll Google Calendar events for configured accounts and write individual JSON files with change detection.",
     "overlap_policy": "skip",
     "timeout_seconds": 300,
