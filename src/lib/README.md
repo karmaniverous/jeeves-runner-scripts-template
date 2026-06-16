@@ -65,7 +65,8 @@ Gateway HTTP client for OpenClaw tool invocation. Depends on `GATEWAY_HOST`, `GA
 Zod-validated pipeline configuration loader. Depends on `PIPELINE_CONFIG_PATH`.
 
 - `loadPipelineConfig()` — load and cache config with Zod validation
-- `getRef(key)` — get a ref value by dotted key (e.g., `'notion.socialPostsDatabaseId'`)
+- `getRef(key)` — get a ref value by dotted key (e.g., `'notion.socialPostsDatabaseId'`); throws if missing
+- `tryGetRef(key)` — same as `getRef` but returns an empty string instead of throwing when the key is missing
 - `getCalendarAccounts()` — accounts with calendar config
 - `getEmailAccounts()` — email addresses with `emailPolling: true`
 - `getBucketForDomain(domain)` — match email domain to classification bucket
@@ -79,6 +80,7 @@ Multi-tenant data routing by email domain, GitHub org, and Slack workspace. Depe
 - `getBasePathForGitHubOrg(org)` — resolve GitHub org to base path (with optional relative path)
 - `getBasePathForSlackWorkspace(teamId)` — resolve Slack workspace to base path
 - `getBasePathForMeeting(participantEmails)` — resolve meeting to base path via majority-voting on participant email domains
+- `getBasePathForJira()` — resolve Jira base path from silo routing config
 - `getEntityDirs(subdir)` — deduplicated list of entity root directories across all silos
 - `getEmailBaseForAccount(account)` / `getCalendarBaseForAccount(account)` — per-account path helpers
 
@@ -167,6 +169,7 @@ Loaded and validated by `silo-router.ts`. Routes pipeline output to the correct 
       "emailDomains": ["acme.com", "acme.co.uk"],
       "githubOrgs": ["acme-corp", { "githubOrg": "acme-oss", "relativePath": "oss" }],
       "slackWorkspaces": ["T0ABC123"],
+      "jira": true,
       "basePath": "/opt/jeeves/content/acme"
     }
   }
@@ -180,4 +183,5 @@ Loaded and validated by `silo-router.ts`. Routes pipeline output to the correct 
   - `emailDomains` — Email domains that belong to this tenant.
   - `githubOrgs` — GitHub orgs for this tenant. Plain strings use the silo's `basePath` directly; objects with `{ "githubOrg": "...", "relativePath": "..." }` append a relative subdirectory.
   - `slackWorkspaces` — Slack team IDs (e.g., `T0ABC123`) for this tenant.
+  - `jira` — When `true`, Jira content for this instance routes to this silo.
   - `basePath` — Absolute base path for all content routed to this silo.
