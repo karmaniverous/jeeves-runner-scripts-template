@@ -1,0 +1,15 @@
+[
+  {
+    "_comment": "The Jira drain (drain.ts) is NOT a runner job — it is invoked directly by the jeeves-server Event Gateway when a webhook fires. See src/jira/README.md for gateway config and webhook setup.",
+    "id": "jira-refresh-fields",
+    "name": "Jira Refresh Field Metadata",
+    "script": "src/jira/refresh-fields.ts",
+    "schedule": { "freq": "daily", "byhour": 3, "byminute": 0, "timezone": "UTC" },
+    "description": "Refresh Jira custom field metadata (_fields.json) from REST API. Used by the drain script for custom field name translation.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 60,
+    "enabled": true,
+    "domain": "jira",
+    "prerequisite": "Jira API credentials (JIRA_SITE_URL, JIRA_EMAIL, JIRA_API_TOKEN_PATH in constants.ts)"
+  }
+]

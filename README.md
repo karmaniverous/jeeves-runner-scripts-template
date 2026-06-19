@@ -43,6 +43,7 @@ Runner job manifests live in `jobs/` (one JSON file per domain). Scripts are org
 | `dispatchers/` | LLM session dispatch framework | [README](src/dispatchers/README.md) |
 | `email/` | Gmail polling, download, triage, classification | [README](src/email/README.md) |
 | `github/` | Repo sync, issue sync, notifications, collaborator management | [README](src/github/README.md) |
+| `jira/` | Jira webhook drain, backfill, field metadata refresh | [README](src/jira/README.md) |
 | `lib/` | Shared infrastructure (constants, dates, email parsing, CLI wrappers) | [README](src/lib/README.md) |
 | `meetings/` | Meeting extraction (Google Meet, Fathom, Notion) | [README](src/meetings/README.md) |
 | `meta/` | Entity lifecycle maintenance | [README](src/meta/README.md) |
