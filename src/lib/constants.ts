@@ -204,6 +204,45 @@ export const X_OAUTH_DIR = path.join(CREDENTIALS_DIR, 'oauth');
  */
 export const X_ACCOUNTS: Record<string, string> = {};
 
+// ========== Jira [OPTIONAL] ==========
+
+/**
+ * Base URL of the Jira Cloud site.
+ * e.g. `'https://mysite.atlassian.net'`
+ */
+export const JIRA_SITE_URL: string = '';
+
+/**
+ * Atlassian account email used for Jira API basic auth.
+ * e.g. `'jason@example.com'`
+ */
+export const JIRA_EMAIL: string = '';
+
+/**
+ * Path to a file containing the Jira API token (plain text, one line).
+ * Generate at https://id.atlassian.com/manage-profile/security/api-tokens
+ */
+export const JIRA_API_TOKEN_PATH: string = '';
+
+/**
+ * Filename for the Jira custom field metadata cache written by
+ * refresh-fields.ts. Lives at the root of the Jira domain directory.
+ */
+export const JIRA_FIELDS_FILENAME = '_fields.json';
+
+/**
+ * Maximum number of history entries to retain per entity file.
+ * Older entries are dropped when the cap is reached.
+ */
+export const JIRA_MAX_HISTORY = 50;
+
+/**
+ * Root directory for Jira domain output. Used by the refresh-fields
+ * and backfill scripts on single-tenant instances; multi-tenant paths
+ * are resolved at runtime via `getBasePathForJira()` in silo-router.ts.
+ */
+export const JIRA_DIR = path.join(CONTENT_DIR, 'jira');
+
 // ========== Entity Pipeline [OPTIONAL] ==========
 
 /**
@@ -230,6 +269,11 @@ export const ENTITY_TYPES: EntityTypeConfig[] = [
     subdir: 'meetings',
     rejectionKeys: ['nonmeeting', 'non_meeting'],
     maxAgeDays: 7,
+  },
+  {
+    subdir: 'jira/issue',
+    rejectionKeys: [],
+    maxAgeDays: null,
   },
 ];
 
