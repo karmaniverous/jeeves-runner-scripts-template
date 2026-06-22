@@ -16,7 +16,7 @@ GitHub repo sync, issue sync, notification monitoring, and collaborator manageme
 ## Data Flow
 
 ```
-build-registry  →  GITHUB_REGISTRY_PATH (repos.json)
+build-registry  →  GITHUB_REGISTRY_PATH (registry.json)
                          ↓
               sync-repos (clone/pull)  +  sync-issues (fetch issues)
                     ↓                           ↓
