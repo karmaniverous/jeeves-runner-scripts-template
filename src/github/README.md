@@ -15,16 +15,19 @@ GitHub repo sync, issue sync, notification monitoring, and collaborator manageme
 
 ## Data Flow
 
-```
-build-registry  →  GITHUB_REGISTRY_PATH (registry.json)
-                         ↓
-              sync-repos (clone/pull)  +  sync-issues (fetch issues)
-                    ↓                           ↓
-         silo-routed repo clones       per-issue JSON with patch history
+```mermaid
+flowchart LR
+  build-registry --> registry["GITHUB_REGISTRY_PATH<br/>(registry.json)"]
+  registry --> sync-repos["sync-repos<br/>(clone/pull)"]
+  registry --> sync-issues["sync-issues<br/>(fetch issues)"]
+  sync-repos --> clones["silo-routed<br/>repo clones"]
+  sync-issues --> issues["per-issue JSON<br/>with patch history"]
 
-poll-collabs  →  gh-collabs queue  →  drain-collabs (add collaborator / accept invitation)
+  poll-collabs --> queue["gh-collabs queue"]
+  queue --> drain-collabs["drain-collabs<br/>(add collaborator /<br/>accept invitation)"]
 
-watch  →  notification state  →  escalation queue (review requests, mentions, stale items)
+  watch --> state["notification state"]
+  state --> escalation["escalation queue<br/>(review requests,<br/>mentions, stale items)"]
 ```
 
 - **build-registry** runs daily, enumerating repos via GitHub API and writing the registry file.
