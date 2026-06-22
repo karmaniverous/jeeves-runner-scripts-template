@@ -16,13 +16,15 @@ Token metrics collection, session cost management, and OpenClaw post-install pat
 
 ## Data Flow
 
-```
-collect-token-metrics  →  hourly bucket JSON files  →  token-metrics (query/aggregate)
-                                                    ←  refresh-token-rates (rate card)
+```mermaid
+flowchart LR
+  collect["collect-token-metrics"] --> buckets["hourly bucket\nJSON files"]
+  buckets --> metrics["token-metrics\n(query/aggregate)"]
+  buckets --> rates["refresh-token-rates\n(rate card)"]
 
-session-refresh  →  gateway API (refresh idle/oversized sessions)
+  refresh["session-refresh"] --> gateway["gateway API\n(refresh idle/oversized sessions)"]
 
-patch-openclaw  →  patch-tool-order (post npm install -g openclaw)
+  patch["patch-openclaw"] --> order["patch-tool-order\n(post npm install -g openclaw)"]
 ```
 
 - **collect-token-metrics** incrementally scans JSONL transcripts (OpenClaw + Claude Code), rolls usage into per-hour bucket files partitioned by channel and model.

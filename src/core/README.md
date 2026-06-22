@@ -10,8 +10,10 @@ Housekeeping scripts for filesystem maintenance.
 
 ## Data Flow
 
-```
-CONTENT_DIR + SCRIPTS_DIR  →  recursive scan  →  delete .tmp files older than MAX_AGE_MS (1 hour)
+```mermaid
+flowchart LR
+  dirs["CONTENT_DIR +\nSCRIPTS_DIR"] --> scan["recursive scan"]
+  scan --> delete["delete .tmp files older\nthan MAX_AGE_MS (1 hour)"]
 ```
 
 - Skips `node_modules/` and `.git/` directories.

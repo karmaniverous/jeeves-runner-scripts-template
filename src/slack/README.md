@@ -10,10 +10,11 @@ Polls Slack channels for new messages across configured workspaces, auto-discove
 
 ## Data Flow
 
-```
-Bot tokens  →  auto-discover channels  →  fetch history + thread replies  →  per-message JSON files
-(env/config)    (public, private,           (paginated, since last poll)      (silo-routed by workspace)
-                 IM, MPIM)
+```mermaid
+flowchart LR
+  tokens["Bot tokens\n(env/config)"] --> discover["auto-discover channels\n(public, private, IM, MPIM)"]
+  discover --> fetch["fetch history +\nthread replies\n(paginated, since last poll)"]
+  fetch --> files["per-message JSON files\n(silo-routed by workspace)"]
 ```
 
 - Loads Slack bot tokens from environment or `.openclaw/openclaw.json` / `.clawdbot/clawdbot.json` config files.

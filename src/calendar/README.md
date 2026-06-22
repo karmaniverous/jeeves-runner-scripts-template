@@ -10,9 +10,11 @@ Polls Google Calendar events for configured accounts and writes individual JSON 
 
 ## Data Flow
 
-```
-pipeline-config (accounts)  →  poll.ts  →  Google Calendar API  →  per-event JSON files
-                                           (via gog OAuth)          (silo-routed by email domain)
+```mermaid
+flowchart LR
+  config["pipeline-config\n(accounts)"] --> poll["poll.ts"]
+  poll --> gcal["Google Calendar API\n(via gog OAuth)"]
+  gcal --> events["per-event JSON files\n(silo-routed by email domain)"]
 ```
 
 - Polls a 90-day lookback + 90-day forward window per account.

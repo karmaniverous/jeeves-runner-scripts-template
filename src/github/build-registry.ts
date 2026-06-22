@@ -7,17 +7,14 @@
  * Called by the jeeves-runner scheduler. Authenticates via GH_BIN,
  * paginates the /user/repos endpoint to collect repos with push
  * access, and writes the registry to GITHUB_REGISTRY_PATH under
- * GITHUB_DIR. Also writes a backward-compat repos.json into
- * CODEBASE_DIR.
+ * GITHUB_DIR.
  */
 
 import fs from 'node:fs';
-import path from 'node:path';
 
 import { ensureDir, nowIso, run, runScript } from '@karmaniverous/jeeves';
 
 import {
-  CODEBASE_DIR,
   GH_ACCOUNT,
   GH_BIN,
   GH_CONFIG_DIR,
@@ -25,7 +22,6 @@ import {
   GITHUB_REGISTRY_PATH,
 } from '../lib/constants.js';
 import { ghApi, setupGhConfig } from '../lib/gh.js';
-import { getBasePathForGitHubOrg } from '../lib/silo-router.js';
 
 setupGhConfig();
 
@@ -112,7 +108,6 @@ function main(): void {
     return;
   }
 
-  ensureDir(CODEBASE_DIR);
   ensureDir(GITHUB_DIR);
   console.log(`[repo-registry] start ${nowIso()}`);
 
@@ -209,48 +204,6 @@ function main(): void {
     'utf8',
   );
   console.log(`[repo-registry] wrote ${GITHUB_REGISTRY_PATH}`);
-
-  // Backward compat: old array format
-  const reposMeta = allRepos.map((r) => {
-    const pol = computeSocialPolicy(r.owner.login, r.private, account);
-    return {
-      nameWithOwner: r.full_name,
-      owner: r.owner.login,
-      repo: r.name,
-      private: r.private,
-      defaultBranch: r.default_branch,
-      description: r.description,
-      topics: r.topics,
-      language: r.language,
-      pushedAt: r.pushed_at,
-      openIssuesCount: r.open_issues_count,
-      visibility: r.visibility,
-      socialUse: pol.socialUse,
-      socialNotes: pol.notes,
-      clonePath: path.join(
-        getBasePathForGitHubOrg(r.owner.login),
-        'github',
-        r.owner.login,
-        r.name,
-        'repo',
-      ),
-    };
-  });
-
-  fs.writeFileSync(
-    path.join(CODEBASE_DIR, 'repos.json'),
-    JSON.stringify(
-      {
-        generatedAt: nowIso(),
-        account,
-        count: allRepos.length,
-        repos: reposMeta,
-      },
-      null,
-      2,
-    ) + '\n',
-    'utf8',
-  );
 
   console.log(
     `[repo-registry] end   ${nowIso()} (count=${String(allRepos.length)}, external=${String(externalRepos.length)})`,

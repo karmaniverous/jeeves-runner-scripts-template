@@ -11,11 +11,12 @@ Entity lifecycle maintenance — sweeps duplicate entities and disables stale me
 
 ## Data Flow
 
-```
-ENTITY_TYPES (constants.ts)  →  getEntityDirs() (silo-router)  →  scan .meta/meta.json per entity
-                                                                         ↓
-                                                              sweep-duplicates: merge + delete
-                                                              disable-old-meta: write _disabled
+```mermaid
+flowchart LR
+  types["ENTITY_TYPES\n(constants.ts)"] --> dirs["getEntityDirs()\n(silo-router)"]
+  dirs --> scan["scan .meta/meta.json\nper entity"]
+  scan --> sweep["sweep-duplicates:\nmerge + delete"]
+  scan --> disable["disable-old-meta:\nwrite _disabled"]
 ```
 
 - Both scripts loop over `ENTITY_TYPES` from constants, which defines `subdir`, `rejectionKeys`, and `maxAgeDays` per entity type.

@@ -169,14 +169,6 @@ export const PRIMARY_WORKSPACE = '';
 export const SLACK_WORKSPACE_CACHE_PATH =
   '/opt/jeeves/config/slack-channel-workspaces.json';
 
-// ========== Codebase [OPTIONAL] ==========
-
-/**
- * Directory where codebase-related pipeline output is written
- * (repo summaries, code analysis). Derived from CONTENT_DIR.
- */
-export const CODEBASE_DIR = path.join(CONTENT_DIR, 'codebase');
-
 // ========== Notion [OPTIONAL] ==========
 
 /**

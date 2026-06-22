@@ -11,9 +11,12 @@ CLI tools for converting DOCX and PDF files to Markdown with YAML frontmatter.
 
 ## Data Flow
 
-```
---paths dirs  →  findFiles(ext)  →  needsConversion?  →  extract content  →  .docx.md / .pdf.md
-                                     (skip if up-to-date)   (mammoth/pdf-parse)   (with YAML frontmatter)
+```mermaid
+flowchart LR
+  paths["--paths dirs"] --> find["findFiles(ext)"]
+  find --> check["needsConversion?\n(skip if up-to-date)"]
+  check --> extract["extract content\n(mammoth/pdf-parse)"]
+  extract --> output[".docx.md / .pdf.md\n(with YAML frontmatter)"]
 ```
 
 - Both scripts accept `--paths` with comma-separated directories to scan recursively.
