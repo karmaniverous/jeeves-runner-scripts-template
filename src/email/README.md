@@ -17,14 +17,14 @@ Gmail polling, download, triage, and classification pipeline. Polls configured a
 
 ## Data Flow
 
-```
-poll  →  classify (receipt/junk/bucket)  →  enqueue email-pending + email-updates
-                                                    ↓                    ↓
-                                              download             drain-updates
-                                           (fetch bodies)       (apply Gmail labels)
-                                                    ↓
-                                          per-message JSON files
-                                          (silo-routed by account)
+```mermaid
+flowchart TD
+  poll --> classify["classify\n(receipt/junk/bucket)"]
+  classify --> pending["enqueue\nemail-pending"]
+  classify --> updates["enqueue\nemail-updates"]
+  pending --> download["download\n(fetch bodies)"]
+  updates --> drain["drain-updates\n(apply Gmail labels)"]
+  download --> files["per-message JSON files\n(silo-routed by account)"]
 ```
 
 1. **poll** searches Gmail via `gog gmail search`, classifies each thread, enqueues important threads to `email-pending` for body download and label actions to `email-updates`.

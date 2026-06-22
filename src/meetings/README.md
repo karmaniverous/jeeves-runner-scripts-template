@@ -14,14 +14,16 @@ Meeting extraction from three independent sources — Google Meet (via email), F
 
 ## Data Flow
 
-```
-Email cache  →  extract.ts  →  meeting packages ({silo}/meetings/{id}/)
-                                    ↓
-                              fetch-notes.ts  →  Gemini docs (gog export)
-                                              →  Fathom transcripts (puppeteer / share page)
+```mermaid
+flowchart TD
+  email["Email cache"] --> extract["extract.ts"]
+  extract --> packages["meeting packages\n(silo/meetings/id/)"]
+  packages --> fetch["fetch-notes.ts"]
+  fetch --> gemini["Gemini docs\n(gog export)"]
+  fetch --> fathom["Fathom transcripts\n(puppeteer / share page)"]
 
-Notion inbox  →  ingest-notion.ts  →  meeting packages
-                  (browser extract)     (summary.txt, transcript.txt, meeting.json)
+  notion["Notion inbox"] --> ingest["ingest-notion.ts\n(browser extract)"]
+  ingest --> notionPkg["meeting packages\n(summary.txt, transcript.txt,\nmeeting.json)"]
 ```
 
 ### Meeting Package Structure

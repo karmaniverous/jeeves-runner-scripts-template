@@ -19,15 +19,18 @@ Polls, posts, and engages on X/Twitter via API v2. Supports multiple accounts wi
 
 ## Data Flow
 
-```
-poll-posts/mentions/feed/likes/bookmarks
-  → enqueue to runner queues (x-{type}-{handle})
-  → drain-queues writes JSON to disk
+```mermaid
+flowchart TD
+  subgraph Ingest
+    poll["poll-posts / mentions /\nfeed / likes / bookmarks"] --> enqueue["enqueue to runner queues\n(x-type-handle)"]
+    enqueue --> drain["drain-queues\nwrites JSON to disk"]
+  end
 
-post/like/repost
-  → dequeue from runner queues
-  → call X API v2 endpoints
-  → auto-refresh token on 401
+  subgraph Publish
+    action["post / like / repost"] --> dequeue["dequeue from\nrunner queues"]
+    dequeue --> api["call X API v2\nendpoints"]
+    api --> refresh["auto-refresh\ntoken on 401"]
+  end
 ```
 
 `poll-feed` is the exception — it writes feed items directly to the account's `feed/` directory instead of using the queue pattern.

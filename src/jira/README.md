@@ -13,34 +13,26 @@ Custom field names (e.g. `customfield_10001`) are translated to human-readable a
 
 ## Architecture
 
-```
-Jira Cloud
-    │
-    │  webhook POST
-    ▼
-jeeves-server Event Gateway
-    │  stdin pipe
-    ▼
-src/jira/drain.ts  ──────────────────────────────────────────────────────────┐
-    │  routes by webhookEvent                                                 │
-    ├── jira:issue_created / jira:issue_updated ──► {domainDir}/issue/{key}.json
-    ├── jira:issue_deleted                       ──► delete file
-    ├── comment_created / comment_updated        ──► {domainDir}/comment/{id}.json
-    ├── comment_deleted                          ──► delete file
-    ├── jira:version_*                           ──► {domainDir}/version/{id}.json
-    ├── sprint_*                                 ──► {domainDir}/sprint/{id}.json
-    ├── board_*                                  ──► {domainDir}/board/{id}.json
-    └── (unrecognised)                           ──► {domainDir}/_unmatched/{ts}-{event}.json
-                                                                             │
-src/jira/backfill.ts (one-time, manual)                                      │
-    │  Jira REST API /search                                                  │
-    └──────────────────────────────────────────────────────────────────────  ┘
-          domain dir = {getBasePathForJira()}/jira/
+```mermaid
+flowchart TD
+  jira["Jira Cloud"] -->|webhook POST| gw["jeeves-server\nEvent Gateway"]
+  gw -->|stdin pipe| drain["drain.ts\n(routes by webhookEvent)"]
 
-src/jira/refresh-fields.ts (daily runner job)
-    │  Jira REST API /field
-    └──► {domainDir}/_fields.json   (customfield_N → human name)
+  drain -->|"issue_created /\nissue_updated"| issue["issue/key.json"]
+  drain -->|issue_deleted| del["delete file"]
+  drain -->|"comment_created /\ncomment_updated"| comment["comment/id.json"]
+  drain -->|comment_deleted| del
+  drain -->|"version_*"| version["version/id.json"]
+  drain -->|"sprint_*"| sprint["sprint/id.json"]
+  drain -->|"board_*"| board["board/id.json"]
+  drain -->|unrecognised| unmatched["_unmatched/ts-event.json"]
+
+  backfill["backfill.ts\n(one-time, manual)"] -->|"REST API /search"| issue
+
+  refresh["refresh-fields.ts\n(daily runner job)"] -->|"REST API /field"| fields["_fields.json\n(customfield_N → human name)"]
 ```
+
+> Domain dir = `getBasePathForJira()/jira/`
 
 ## Scripts
 
