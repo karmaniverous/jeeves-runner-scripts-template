@@ -2,13 +2,14 @@
 /**
  * @module poll
  *
- * Poll Gmail accounts for new/updated threads, classify them, and enqueue
- * important threads for deep metadata fetch and body download.
+ * Unified email poller — dispatches by account type. Accounts without an
+ * `imap` block are polled via the gog CLI (Gmail OAuth). Accounts with an
+ * `imap` block are polled via direct IMAP connection.
  *
- * Called on a schedule as an entry-point script. Searches each account via
- * `gog gmail search`, runs triage classification (receipt/junk/bucket),
- * enqueues label actions to `email-updates` and threads to `email-pending`,
- * and logs events to EMAIL_EVENTS_DIR. Trims old JSONL logs after 7 days.
+ * Called on a schedule as an entry-point script. For gog accounts: searches
+ * via `gog gmail search`, runs triage classification, enqueues for download.
+ * For IMAP accounts: connects, fetches, parses MIME, writes directly to disk.
+ * Trims old JSONL logs after 7 days.
  *
  * Depends on EMAIL_EVENTS_DIR, emailConfig.reportOnly, and bucket domain
  * config from pipeline-config. Missing config causes classification to
@@ -28,33 +29,30 @@ import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
 import { EMAIL_EVENTS_DIR, GOG_CLIENT_PATH } from '../lib/constants.js';
 import { gogWithRetry } from '../lib/gog.js';
-import {
-  getEmailAccounts,
-  loadPipelineConfig,
-} from '../lib/pipeline-config.js';
-import { fetchThreadMetadata } from './email-fetch.js';
+import { loadPipelineConfig } from '../lib/pipeline-config.js';
 import {
   getThreadState,
   loadScalarState,
   saveScalarState,
   setThreadState,
 } from './email-state.js';
+import { fetchThreadMetadata } from './google-workspace/email-fetch.js';
 import {
   classifyBucket,
   computeLabelsToApply,
   isJunkCandidate,
   isReceiptCandidate,
   looksImportantBySummary,
-} from './email-triage.js';
+} from './google-workspace/email-triage.js';
+import { pollImapAccount } from './imap/poll.js';
 
-function main(): void {
-  if (!fs.existsSync(GOG_CLIENT_PATH)) {
-    console.log('[skip] Google OAuth credentials not configured');
-    return;
-  }
+async function main(): Promise<void> {
+  const config = loadPipelineConfig();
+  const allAccounts = config.accounts.filter((a) => a.emailPolling);
+  const gogAccounts = allAccounts.filter((a) => !a.imap);
+  const imapAccounts = allAccounts.filter((a) => a.imap);
 
-  const accounts = getEmailAccounts();
-  const reportOnly = loadPipelineConfig().emailConfig.reportOnly;
+  const reportOnly = config.emailConfig.reportOnly;
   const query = 'in:anywhere';
   const max = 100;
   const client = getRunnerClient();
@@ -62,7 +60,38 @@ function main(): void {
   try {
     ensureDir(EMAIL_EVENTS_DIR);
 
-    for (const account of accounts) {
+    // ── IMAP accounts ──────────────────────────────────────────────
+    for (const account of imapAccounts) {
+      console.log(`[imap] Polling ${account.email}`);
+      try {
+        const s = await pollImapAccount(account, client);
+        appendJsonl(path.join(EMAIL_EVENTS_DIR, '_runs-imap-poll.jsonl'), {
+          at: nowIso(),
+          kind: 'imap-poll',
+          account: account.email,
+          fetched: s.fetched,
+          written: s.written,
+          skipped: s.skipped,
+          failed: s.failed,
+          folders: s.folders,
+        });
+      } catch (e) {
+        console.error(
+          `[imap] ${account.email} error: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+
+    // ── gog accounts ───────────────────────────────────────────────
+    const hasGog = fs.existsSync(GOG_CLIENT_PATH);
+    if (!hasGog && gogAccounts.length > 0) {
+      console.log(
+        '[gog] OAuth credentials not configured — skipping gog accounts',
+      );
+    }
+
+    for (const acctCfg of hasGog ? gogAccounts : []) {
+      const account = acctCfg.email;
       const state = loadScalarState(account, client);
 
       const out = gogWithRetry(

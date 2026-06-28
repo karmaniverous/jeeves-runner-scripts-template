@@ -17,17 +17,28 @@ const VALID_CONFIG = {
   accounts: [
     {
       email: 'alice@example.com',
+      type: 'gmail' as const,
       calendar: { tokenFile: 'token-alice.json' },
       emailPolling: true,
     },
     {
       email: 'bob@example.com',
+      type: 'gmail' as const,
       calendar: { serviceAccount: 'auto' as const },
       emailPolling: false,
     },
     {
       email: 'carol@example.com',
+      type: 'imap' as const,
       emailPolling: true,
+      imap: {
+        host: 'imap.example.com',
+        port: 993,
+        tls: true,
+        user: 'carol@example.com',
+        password: 'secret',
+      },
+      folders: ['INBOX', 'Sent'],
     },
   ],
   buckets: {
@@ -43,7 +54,7 @@ const VALID_CONFIG = {
   },
   emailConfig: {
     reportOnly: false,
-    receipt: { forwardToOwner: true, sparkReceiptsForwardTo: '' },
+    receipt: { forwardJGS: true, sparkReceiptsForwardTo: '' },
     digest: { slackChannelId: 'C1234' },
   },
 };
@@ -144,6 +155,26 @@ describe('pipeline-config', () => {
       );
       resetPipelineConfig();
       expect(() => loadPipelineConfig()).toThrow();
+    });
+
+    it('rejects account without type', () => {
+      const bad = {
+        ...VALID_CONFIG,
+        accounts: [{ email: 'x@y.com', emailPolling: true }],
+      };
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(bad));
+      resetPipelineConfig();
+      expect(() => loadPipelineConfig()).toThrow();
+    });
+
+    it('accepts imap account with connection block and folders', () => {
+      const config = loadPipelineConfig();
+      const carol = config.accounts.find(
+        (a) => a.email === 'carol@example.com',
+      );
+      expect(carol?.type).toBe('imap');
+      expect(carol?.imap?.host).toBe('imap.example.com');
+      expect(carol?.folders).toEqual(['INBOX', 'Sent']);
     });
   });
 });

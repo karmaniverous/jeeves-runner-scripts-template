@@ -20,8 +20,8 @@ import path from 'node:path';
 import { nowIso, readJson, runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { getEmailAccounts } from '../lib/pipeline-config.js';
-import { getEmailBaseForAccount } from '../lib/silo-router.js';
+import { getEmailAccounts } from '../../lib/pipeline-config.js';
+import { getEmailBaseForAccount } from '../../lib/silo-router.js';
 
 interface ThreadCache {
   threadId: string;

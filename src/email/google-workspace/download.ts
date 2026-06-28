@@ -28,16 +28,16 @@ import {
 } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { EMAIL_EVENTS_DIR, GOG_CLIENT_PATH } from '../lib/constants.js';
+import { EMAIL_EVENTS_DIR, GOG_CLIENT_PATH } from '../../lib/constants.js';
 import {
   extractAttachments,
   extractTextFromPayload,
   type GmailHeader,
   type GmailPayloadPart,
   headerValue,
-} from '../lib/email.js';
-import { gogWithRetry } from '../lib/gog.js';
-import { getThreadsPath } from './email-cache.js';
+} from '../../lib/email.js';
+import { gogWithRetry } from '../../lib/gog.js';
+import { getThreadsPath } from '../email-cache.js';
 
 function messageExists(
   account: string,

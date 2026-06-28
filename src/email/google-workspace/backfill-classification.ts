@@ -19,14 +19,14 @@ import path from 'node:path';
 import { nowIso, readJson, runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { getEmailAccounts } from '../lib/pipeline-config.js';
-import { getThreadsPath, type ThreadCache } from './email-cache.js';
+import { getEmailAccounts } from '../../lib/pipeline-config.js';
+import { getThreadsPath, type ThreadCache } from '../email-cache.js';
 import {
   getThreadState,
   seenKey,
   setThreadState,
   type ThreadState,
-} from './email-state.js';
+} from '../email-state.js';
 import {
   classifyBucket,
   computeLabelsToApply,
@@ -53,7 +53,7 @@ function main(): void {
       receipt: 0,
       junk: 0,
       VC: 0,
-      // Add org-specific buckets here, e.g. MyOrg: 0,
+      JGS: 0,
       Tribify: 0,
       Personal: 0,
     };

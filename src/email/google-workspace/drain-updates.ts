@@ -21,9 +21,9 @@ import path from 'node:path';
 import { appendJsonl, nowIso, runScript, sleepMs } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { EMAIL_EVENTS_DIR, GOG_CLIENT_PATH } from '../lib/constants.js';
-import { gogWithRetry } from '../lib/gog.js';
-import { loadCache, saveCache } from './email-cache.js';
+import { EMAIL_EVENTS_DIR, GOG_CLIENT_PATH } from '../../lib/constants.js';
+import { gogWithRetry } from '../../lib/gog.js';
+import { loadCache, saveCache } from '../email-cache.js';
 
 const MAX_CALLS_PER_MINUTE = 60;
 

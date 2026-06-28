@@ -138,6 +138,13 @@ export interface ParsedArgs {
   [key: string]: string;
 }
 
+interface SpawnArgs {
+  task: string;
+  label: string;
+  thread: boolean;
+  thinking?: string;
+}
+
 interface GatewayResponse {
   ok?: boolean;
   result?: GatewayResult;
@@ -187,14 +194,6 @@ interface WorkerCompletion {
   durationMs: number;
   tokens: number;
   model?: string;
-}
-
-interface SpawnArgs {
-  task: string;
-  label: string;
-  runTimeoutSeconds: number;
-  thread: boolean;
-  thinking?: string;
 }
 
 // ── Pure helpers ───────────────────────────────────────────────────────
@@ -568,11 +567,11 @@ async function main(): Promise<void> {
 
   const jobId = args['job-id'];
   const startTime = Date.now();
+  const pollTimeoutSeconds = parseInt(args['timeout'] ?? '600', 10);
 
   const spawnArgs: SpawnArgs = {
     task: taskInput,
     label: args['label'] ?? `worker-${jobId.slice(0, 8)}`,
-    runTimeoutSeconds: parseInt(args['timeout'] ?? '300', 10),
     thread: false,
   };
 
@@ -584,7 +583,6 @@ async function main(): Promise<void> {
     `[${new Date().toISOString()}] Spawning worker for job ${jobId.slice(0, 8)}`,
   );
   console.log(`  Label: ${spawnArgs.label}`);
-  console.log(`  Timeout: ${String(spawnArgs.runTimeoutSeconds)}s`);
 
   try {
     const { result, sessionKey } = await spawnWithRetry(spawnArgs);
@@ -599,7 +597,7 @@ async function main(): Promise<void> {
 
     const completion = await waitForWorkerCompletion(
       sessionKey,
-      spawnArgs.runTimeoutSeconds,
+      pollTimeoutSeconds,
       startTime,
     );
 
