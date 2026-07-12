@@ -38,14 +38,24 @@ const CalendarConfigSchema = z.union([
   z.object({ serviceAccount: z.literal('auto') }),
 ]);
 
-const AccountSchema = z.object({
-  email: z.string(),
-  type: z.enum(['gmail', 'imap']),
-  calendar: CalendarConfigSchema.optional(),
-  emailPolling: z.boolean(),
-  imap: ImapConnectionSchema.optional(),
-  folders: z.array(z.string()).optional(),
-});
+const AccountSchema = z
+  .object({
+    email: z.string(),
+    type: z.enum(['gmail', 'imap']),
+    calendar: CalendarConfigSchema.optional(),
+    emailPolling: z.boolean(),
+    imap: ImapConnectionSchema.optional(),
+    folders: z.array(z.string()).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'imap' && !data.imap) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'IMAP accounts require an imap connection block',
+        path: ['imap'],
+      });
+    }
+  });
 
 const DomainEntrySchema = z.object({
   pattern: z.string(),

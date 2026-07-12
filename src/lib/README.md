@@ -115,8 +115,16 @@ Loaded and validated by `pipeline-config.ts`. Configures accounts, domain-to-buc
   "accounts": [
     {
       "email": "user@company.com",
+      "type": "gmail",
       "calendar": { "serviceAccount": "auto" },
       "emailPolling": true
+    },
+    {
+      "email": "user@imap-provider.com",
+      "type": "imap",
+      "emailPolling": true,
+      "imap": { "host": "imap.provider.com", "port": 993, "tls": true, "user": "user@imap-provider.com", "password": "..." },
+      "folders": ["INBOX", "Sent"]
     }
   ],
   "buckets": {
@@ -133,7 +141,7 @@ Loaded and validated by `pipeline-config.ts`. Configures accounts, domain-to-buc
   "emailConfig": {
     "reportOnly": false,
     "receipt": {
-      "forwardToOwner": true,
+      "forwardJGS": true,
       "sparkReceiptsForwardTo": "receipts@company.com"
     },
     "digest": {
@@ -145,7 +153,7 @@ Loaded and validated by `pipeline-config.ts`. Configures accounts, domain-to-buc
 
 **Fields:**
 
-- `accounts` — List of Google Workspace accounts. Each has `email`, optional `calendar` config (`{ "serviceAccount": "auto" }` or `{ "tokenFile": "path" }`), and `emailPolling` toggle.
+- `accounts` — List of email accounts. Each has `email`, `type` (`"gmail"` or `"imap"`), optional `calendar` config, and `emailPolling` toggle. IMAP accounts require an `imap` connection block; `folders` is optional (defaults to all folders for IMAP, standard Gmail folders for gmail).
 - `buckets.domains` — Maps email domains to classification buckets. `pattern` is matched case-insensitively.
 - `buckets.priority` — Ordered bucket names (lower index = higher priority).
 - `refs` — Named references to external service IDs accessed via `getRef('dotted.key')`.

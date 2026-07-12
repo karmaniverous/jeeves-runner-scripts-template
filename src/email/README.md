@@ -59,7 +59,7 @@ flowchart TD
 
 Platform-agnostic IMAP email polling. Connects to any IMAP provider, fetches new messages via UID watermark, parses MIME, and writes thread/message JSON files identical to the gog pipeline output.
 
-Called by `poll.ts` for accounts with an `imap` block in pipeline config. See [imap.md](../../../domains/projects/jeeves-scripts/imap.md) for the full design spec.
+Called by `poll.ts` for accounts with an `imap` block in pipeline config.
 
 ### Modules
 
