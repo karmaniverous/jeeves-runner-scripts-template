@@ -18,21 +18,21 @@ import path from 'node:path';
 import { appendJsonl, ensureDir, nowIso } from '@karmaniverous/jeeves';
 import type { RunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { EMAIL_EVENTS_DIR } from '../lib/constants.js';
+import { EMAIL_EVENTS_DIR } from '../../lib/constants.js';
 import {
   type GmailHeader,
   type GmailPayloadPart,
   headerValue,
-} from '../lib/email.js';
-import { gogWithRetry } from '../lib/gog.js';
+} from '../../lib/email.js';
+import { gogWithRetry } from '../../lib/gog.js';
 import {
   type CacheMessage,
   createOrUpdateCache,
   detectLabelChanges,
   loadCache,
   type ProvenanceEntry,
-} from './email-cache.js';
-import { getThreadState, setThreadState } from './email-state.js';
+} from '../email-cache.js';
+import { getThreadState, setThreadState } from '../email-state.js';
 import { pendingKey, shouldExpectResponse } from './email-triage.js';
 
 interface GmailMessage {

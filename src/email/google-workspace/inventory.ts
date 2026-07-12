@@ -19,9 +19,9 @@ import path from 'node:path';
 import { runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { getEmailAccounts } from '../lib/pipeline-config.js';
-import { getEmailBaseForAccount } from '../lib/silo-router.js';
-import { seenKey } from './email-state.js';
+import { getEmailAccounts } from '../../lib/pipeline-config.js';
+import { getEmailBaseForAccount } from '../../lib/silo-router.js';
+import { seenKey } from '../email-state.js';
 
 function countFiles(dir: string): number {
   if (!fs.existsSync(dir)) return 0;

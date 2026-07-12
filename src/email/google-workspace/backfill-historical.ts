@@ -18,10 +18,10 @@
 import { ensureDir, nowIso, runScript } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { EMAIL_EVENTS_DIR } from '../lib/constants.js';
-import { gogWithRetry } from '../lib/gog.js';
+import { EMAIL_EVENTS_DIR } from '../../lib/constants.js';
+import { gogWithRetry } from '../../lib/gog.js';
+import { getThreadState, setThreadState } from '../email-state.js';
 import { fetchThreadMetadata } from './email-fetch.js';
-import { getThreadState, setThreadState } from './email-state.js';
 import {
   classifyBucket,
   computeLabelsToApply,
@@ -37,7 +37,10 @@ function parseArg(flag: string, fallback: string): string {
 
 function main(): void {
   const live = process.argv.includes('--live');
-  const accounts = parseArg('--accounts', '').split(',');
+  const accounts = parseArg(
+    '--accounts',
+    'jason@johngalt.id,jscroft@gmail.com',
+  ).split(',');
   const after = parseArg('--after', '2025/12/31');
   const before = parseArg('--before', '2026/02/09');
   const max = Number(parseArg('--max', '500'));

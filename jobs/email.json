@@ -4,17 +4,17 @@
     "name": "Email Poll",
     "script": "src/email/poll.ts",
     "schedule": { "freq": "minutely", "interval": 11, "timezone": "UTC" },
-    "description": "Poll Gmail accounts for new and updated threads, classify, and enqueue for download.",
+    "description": "Poll email accounts for new and updated messages (gog/Gmail and IMAP), classify, and enqueue for download.",
     "overlap_policy": "skip",
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "email",
-    "prerequisite": "Gmail OAuth via gog"
+    "prerequisite": "Gmail OAuth via gog or IMAP credentials"
   },
   {
     "id": "email-download",
     "name": "Email Download",
-    "script": "src/email/download.ts",
+    "script": "src/email/google-workspace/download.ts",
     "schedule": { "freq": "minutely", "interval": 13, "timezone": "UTC" },
     "description": "Dequeue threads from email-pending and download full message bodies from Gmail.",
     "overlap_policy": "skip",
@@ -26,7 +26,7 @@
   {
     "id": "email-drain-updates",
     "name": "Email Drain Updates",
-    "script": "src/email/drain-updates.ts",
+    "script": "src/email/google-workspace/drain-updates.ts",
     "schedule": { "freq": "minutely", "interval": 17, "timezone": "UTC" },
     "description": "Drain the email-updates queue and apply label changes (add, remove, archive, trash) via Gmail API.",
     "overlap_policy": "skip",

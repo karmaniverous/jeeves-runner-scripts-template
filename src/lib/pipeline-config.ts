@@ -25,16 +25,37 @@ import { PIPELINE_CONFIG_PATH } from './constants.js';
 
 // ── Zod schemas ─────────────────────────────────────────────────────
 
+const ImapConnectionSchema = z.object({
+  host: z.string(),
+  port: z.number(),
+  tls: z.boolean(),
+  user: z.string(),
+  password: z.string(),
+});
+
 const CalendarConfigSchema = z.union([
   z.object({ tokenFile: z.string() }),
   z.object({ serviceAccount: z.literal('auto') }),
 ]);
 
-const AccountSchema = z.object({
-  email: z.string(),
-  calendar: CalendarConfigSchema.optional(),
-  emailPolling: z.boolean(),
-});
+const AccountSchema = z
+  .object({
+    email: z.string(),
+    type: z.enum(['gmail', 'imap']),
+    calendar: CalendarConfigSchema.optional(),
+    emailPolling: z.boolean(),
+    imap: ImapConnectionSchema.optional(),
+    folders: z.array(z.string()).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === 'imap' && !data.imap) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'IMAP accounts require an imap connection block',
+        path: ['imap'],
+      });
+    }
+  });
 
 const DomainEntrySchema = z.object({
   pattern: z.string(),
@@ -47,7 +68,7 @@ const BucketsSchema = z.object({
 });
 
 const ReceiptConfigSchema = z.object({
-  forwardToOwner: z.boolean(),
+  forwardJGS: z.boolean(),
   sparkReceiptsForwardTo: z.string(),
 });
 
@@ -72,6 +93,7 @@ const PipelineConfigSchema = z.object({
 
 export type PipelineConfig = z.infer<typeof PipelineConfigSchema>;
 export type AccountConfig = z.infer<typeof AccountSchema>;
+export type ImapConnection = z.infer<typeof ImapConnectionSchema>;
 export type BucketsConfig = z.infer<typeof BucketsSchema>;
 export type EmailConfig = z.infer<typeof EmailConfigSchema>;
 
