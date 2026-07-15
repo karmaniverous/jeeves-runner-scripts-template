@@ -134,8 +134,7 @@ export function detectChannel(lines: string[]): ChannelResult {
 
   // Meta synthesis worker output or recovery sessions.
   if (
-    text.includes('C:\\Windows\\TEMP\\jeeves-meta\\output-') ||
-    text.includes('C:\\Windows\\TEMP\\jeeves-meta/output-') ||
+    /jeeves-meta[/\\]output-/.test(text) ||
     text.includes('jeeves-meta-dev') ||
     text.includes('Write output JSON file with the brief and return its path')
   ) {
