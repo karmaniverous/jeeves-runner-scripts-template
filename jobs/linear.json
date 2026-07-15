@@ -1,0 +1,27 @@
+[
+  {
+    "_comment": "The Linear drain (drain.ts) is NOT a runner job — it is invoked directly by the jeeves-server Event Gateway when a webhook fires. See src/linear/README.md for gateway config and webhook setup.",
+    "id": "linear-sync-issues",
+    "name": "Linear Sync Issues",
+    "script": "src/linear/sync-issues.ts",
+    "schedule": { "timezone": "UTC", "rules": [{ "effect": "event", "options": { "freq": "minutely", "interval": 23 } }] },
+    "description": "Poll Linear GraphQL API for issue changes since last sync cursor.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 600,
+    "enabled": true,
+    "domain": "linear",
+    "prerequisite": "Linear API key at LINEAR_CONFIG_PATH"
+  },
+  {
+    "id": "linear-sync-comments",
+    "name": "Linear Sync Comments",
+    "script": "src/linear/sync-comments.ts",
+    "schedule": { "timezone": "UTC", "rules": [{ "effect": "event", "options": { "freq": "minutely", "interval": 29 } }] },
+    "description": "Poll Linear GraphQL API for comment changes since last sync cursor.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 600,
+    "enabled": true,
+    "domain": "linear",
+    "prerequisite": "Linear API key at LINEAR_CONFIG_PATH"
+  }
+]

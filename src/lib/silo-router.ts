@@ -29,6 +29,7 @@ export interface SiloConfig {
   githubOrgs?: GitHubOrgSpec[];
   slackWorkspaces?: string[];
   jira?: boolean;
+  linear?: boolean;
   basePath: string;
 }
 
@@ -134,6 +135,18 @@ export function getBasePathForJira(): string {
   const config = getConfig();
   for (const silo of Object.values(config.silos)) {
     if (silo.jira) return silo.basePath;
+  }
+  return config.defaultBasePath;
+}
+
+/**
+ * Return the base path for the silo with `linear: true`.
+ * Falls back to defaultBasePath if no silo is configured for Linear.
+ */
+export function getBasePathForLinear(): string {
+  const config = getConfig();
+  for (const silo of Object.values(config.silos)) {
+    if (silo.linear) return silo.basePath;
   }
   return config.defaultBasePath;
 }
