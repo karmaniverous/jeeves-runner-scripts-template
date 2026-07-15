@@ -47,8 +47,7 @@ async function clickTab(targetId: string, name: string): Promise<void> {
   });
 
   const result = unwrapResult(raw).result as
-    | { ok: boolean; reason?: string }
-    | undefined;
+    { ok: boolean; reason?: string } | undefined;
   if (result && !result.ok) {
     throw new Error(result.reason ?? 'tab click failed');
   }

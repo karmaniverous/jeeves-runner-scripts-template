@@ -170,8 +170,7 @@ function main(): void {
             if (messageExists(account, threadId, messageId)) {
               // Still record in map for thread.json update
               const msgPayload = message.payload as
-                | (GmailPayloadPart & { headers?: GmailHeader[] })
-                | undefined;
+                (GmailPayloadPart & { headers?: GmailHeader[] }) | undefined;
               const hdrs = msgPayload?.headers ?? [];
               messagesMap[messageId] = {
                 id: messageId,
@@ -184,8 +183,7 @@ function main(): void {
             try {
               console.log(`Downloading ${account}/${threadId}/${messageId}`);
               const msgPayload = message.payload as
-                | (GmailPayloadPart & { headers?: GmailHeader[] })
-                | undefined;
+                (GmailPayloadPart & { headers?: GmailHeader[] }) | undefined;
               const hdrs = msgPayload?.headers ?? [];
               const body = extractTextFromPayload(
                 message.payload as GmailPayloadPart,
@@ -273,8 +271,7 @@ function main(): void {
               continue;
             }
             const msgPayload = message.payload as
-              | (GmailPayloadPart & { headers?: GmailHeader[] })
-              | undefined;
+              (GmailPayloadPart & { headers?: GmailHeader[] }) | undefined;
             const hdrs = msgPayload?.headers ?? [];
             const body = extractTextFromPayload(
               message.payload as GmailPayloadPart,

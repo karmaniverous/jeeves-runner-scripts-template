@@ -13,6 +13,7 @@ Token metrics collection, session cost management, and OpenClaw post-install pat
 | `recalculate-token-metrics.ts` | Safe recalculation of token metrics for a date range with backup and dry-run support |
 | `patch-openclaw.ts` | Orchestrator that runs all OpenClaw post-install patches in sequence |
 | `patch-tool-order.ts` | Patches OpenClaw's toolOrder array to insert Jeeves component tools above grep |
+| `patch-also-allow-policy.ts` | Fixes tool inheritance in OpenClaw config by patching the `alsoAllow` policy |
 
 ## Data Flow
 
@@ -25,6 +26,7 @@ flowchart LR
   refresh["session-refresh"] --> gateway["gateway API\n(refresh idle/oversized sessions)"]
 
   patch["patch-openclaw"] --> order["patch-tool-order\n(post npm install -g openclaw)"]
+  patch --> allow["patch-also-allow-policy\n(fix alsoAllow tool inheritance)"]
 ```
 
 - **collect-token-metrics** incrementally scans JSONL transcripts (OpenClaw + Claude Code), rolls usage into per-hour bucket files partitioned by channel and model.

@@ -96,7 +96,7 @@ The core framework lives in `lib/task-file-dispatcher.ts`. It provides a generic
 | `thinking` | `string` | Thinking budget level (e.g., `'low'`) |
 | `timeout` | `number` | Session timeout in seconds |
 | `injectDateContext` | `boolean` | Prepend authoritative date/day-of-week context |
-| `dateTimezone` | `string` | IANA timezone for date injection (default: `'Asia/Makassar'`) |
+| `dateTimezone` | `string` | IANA timezone for date injection (default: `'UTC'`) |
 
 ## TASK File Anatomy
 
@@ -112,7 +112,7 @@ Example location: `{CONTENT_DIR}/digest/TASK.md`
 When `injectDateContext: true`, the framework prepends:
 
 ```
-> **Today is Monday, 2025-05-19 (Asia/Makassar).** Use this as the authoritative date reference...
+> **Today is Monday, 2025-05-19 (UTC).** Use this as the authoritative date reference...
 ```
 
 ## Prerequisites

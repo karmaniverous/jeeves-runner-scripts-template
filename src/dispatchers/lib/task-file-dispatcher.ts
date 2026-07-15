@@ -28,7 +28,7 @@ export interface TaskFileDispatcherOptions extends DispatchOptions {
   scriptName: string;
   /** If true, prepend an authoritative date/day-of-week context line to the task */
   injectDateContext?: boolean;
-  /** IANA timezone for date context injection (default: 'Asia/Makassar') */
+  /** IANA timezone for date context injection (default: 'UTC') */
   dateTimezone?: string;
 }
 
@@ -46,7 +46,7 @@ export function taskFileDispatcher(options: TaskFileDispatcherOptions): void {
   let task = fs.readFileSync(taskFile, 'utf8');
 
   if (injectDateContext) {
-    const tz = dateTimezone ?? 'Asia/Makassar';
+    const tz = dateTimezone ?? 'UTC';
     const now = new Date();
     const dayName = now.toLocaleDateString('en-US', {
       weekday: 'long',
