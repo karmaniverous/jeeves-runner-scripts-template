@@ -32,6 +32,7 @@ import {
   fetchHistory,
   fetchReplies,
   slackApi,
+  type SlackFileMetadata,
   type SlackMessage,
   sleep,
 } from './lib/slack-api.js';
@@ -222,7 +223,19 @@ function writeMessage(
   if (msg.reply_count) doc.replyCount = msg.reply_count;
   if (msg.subtype) doc.subtype = msg.subtype;
   if (msg.bot_id) doc.botId = msg.bot_id;
-  if (msg.files) doc.hasFiles = true;
+  if (msg.files && msg.files.length > 0) {
+    doc.hasFiles = true;
+    doc.files = msg.files.map(
+      (f: SlackFileMetadata) =>
+        ({
+          id: f.id,
+          name: f.name,
+          filetype: f.filetype,
+          mimetype: f.mimetype,
+          ...(f.size != null ? { size: f.size } : {}),
+        }) satisfies SlackFileMetadata,
+    );
+  }
   if (msg.reactions)
     doc.reactions = msg.reactions.map((r) => ({
       name: r.name,
