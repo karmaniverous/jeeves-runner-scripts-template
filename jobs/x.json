@@ -9,7 +9,7 @@
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "x",
-    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+    "prerequisite": "Per-account OAuth JSON files in X_OAUTH_DIR (see refresh-token.ts and x/README.md)"
   },
   {
     "id": "x-poll-mentions",
@@ -21,7 +21,7 @@
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "x",
-    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+    "prerequisite": "Per-account OAuth JSON files in X_OAUTH_DIR (see refresh-token.ts and x/README.md)"
   },
   {
     "id": "x-poll-feed",
@@ -33,7 +33,7 @@
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "x",
-    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+    "prerequisite": "Per-account OAuth JSON files in X_OAUTH_DIR (see refresh-token.ts and x/README.md)"
   },
   {
     "id": "x-poll-likes",
@@ -45,7 +45,7 @@
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "x",
-    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+    "prerequisite": "Per-account OAuth JSON files in X_OAUTH_DIR (see refresh-token.ts and x/README.md)"
   },
   {
     "id": "x-poll-bookmarks",
@@ -57,7 +57,7 @@
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "x",
-    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+    "prerequisite": "Per-account OAuth JSON files in X_OAUTH_DIR (see refresh-token.ts and x/README.md)"
   },
   {
     "id": "x-drain-queues",
@@ -69,6 +69,6 @@
     "timeout_seconds": 300,
     "enabled": true,
     "domain": "x",
-    "prerequisite": "X API credentials (X_CLIENT_ID, X_CLIENT_SECRET)"
+    "prerequisite": "Per-account OAuth JSON files in X_OAUTH_DIR (see refresh-token.ts and x/README.md)"
   }
 ]
