@@ -64,6 +64,8 @@ export interface SlackFileMetadata {
   size?: number;
   /** Transcript text for audio files with Slack-provided transcription. */
   transcript?: string;
+  /** Markdown/text content for text-extractable attachments. */
+  markdown?: string;
 }
 
 export interface SlackMessage {
