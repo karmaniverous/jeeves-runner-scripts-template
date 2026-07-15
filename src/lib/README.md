@@ -90,10 +90,10 @@ Single-tenant instances route everything to `CONTENT_DIR` by default.
 
 Gateway session spawner — executable script invoked by `runDispatcher()`.
 
-Usage: `echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>] [--timeout=<seconds>]`
+Usage: `echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>]`
 
 - Spawns a session via OpenClaw gateway HTTP API
-- Polls for completion (checks session history and staleness)
+- Polls indefinitely for completion (runner job `timeout_seconds` handles process kill)
 - Waits for transcript to flush
 - Outputs `WORKER_RESULT:{"sessionKey":"...","tokens":12345,"durationMs":123000}` on last stdout line
 - Implements retry with exponential backoff (3 retries, 30s base)

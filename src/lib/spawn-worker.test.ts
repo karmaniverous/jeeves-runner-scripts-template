@@ -11,15 +11,10 @@ import {
 
 describe('parseArgs', () => {
   it('parses --key=value pairs', () => {
-    const result = parseArgs([
-      '--job-id=abc123',
-      '--label=test',
-      '--timeout=60',
-    ]);
+    const result = parseArgs(['--job-id=abc123', '--label=test']);
     expect(result).toEqual({
       'job-id': 'abc123',
       label: 'test',
-      timeout: '60',
     });
   });
 

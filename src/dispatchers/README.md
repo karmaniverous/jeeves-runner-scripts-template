@@ -94,7 +94,6 @@ The core framework lives in `lib/task-file-dispatcher.ts`. It provides a generic
 | `scriptName` | `string` | Script name for `runScript()` crash handler |
 | `jobId` | `string` | Runner job ID for `runDispatcher()` |
 | `thinking` | `string` | Thinking budget level (e.g., `'low'`) |
-| `timeout` | `number` | Session timeout in seconds |
 | `injectDateContext` | `boolean` | Prepend authoritative date/day-of-week context |
 | `dateTimezone` | `string` | IANA timezone for date injection (default: `'UTC'`) |
 

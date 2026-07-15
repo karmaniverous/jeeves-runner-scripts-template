@@ -51,7 +51,6 @@ runScript('dispatchers/daily-digest', () => {
     {
       jobId: 'generate-daily-digest',
       thinking: 'low',
-      timeout: 600,
     },
     SPAWN_WORKER_PATH,
   );

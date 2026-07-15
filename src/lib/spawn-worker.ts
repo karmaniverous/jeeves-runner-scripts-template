@@ -4,7 +4,7 @@
  *
  * Spawn Worker — invoke sessions_spawn via Gateway HTTP API.
  *
- * Usage: echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>] [--timeout=<seconds>]
+ * Usage: echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>]
  *
  * Spawns a worker session and waits for completion. On completion, fetches
  * session info to get token usage and outputs a JSON summary line for
@@ -426,21 +426,15 @@ async function checkSessionCompleted(
 
 async function waitForWorkerCompletion(
   sessionKey: string,
-  timeoutSeconds: number,
   startTime: number,
 ): Promise<WorkerCompletion> {
-  const timeoutMs = timeoutSeconds * 1000;
   const pollInterval = 5000;
-  const activeMinutes = Math.max(10, Math.ceil(timeoutSeconds / 60));
+  const activeMinutes = 120;
 
   // Initial delay to let the session start
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
   for (;;) {
-    if (Date.now() - startTime > timeoutMs) {
-      throw new Error(`Worker timeout after ${String(timeoutSeconds)}s`);
-    }
-
     try {
       const status = await checkSessionCompleted(sessionKey);
 
@@ -554,7 +548,7 @@ async function main(): Promise<void> {
 
   if (!args['job-id']) {
     console.error(
-      'Usage: echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>] [--timeout=<seconds>]',
+      'Usage: echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thinking=<level>]',
     );
     process.exit(1);
   }
@@ -567,8 +561,6 @@ async function main(): Promise<void> {
 
   const jobId = args['job-id'];
   const startTime = Date.now();
-  const pollTimeoutSeconds = parseInt(args['timeout'] ?? '600', 10);
-
   const spawnArgs: SpawnArgs = {
     task: taskInput,
     label: args['label'] ?? `worker-${jobId.slice(0, 8)}`,
@@ -595,11 +587,7 @@ async function main(): Promise<void> {
       `[${new Date().toISOString()}] Waiting for worker to complete (session: ${sessionKey})...`,
     );
 
-    const completion = await waitForWorkerCompletion(
-      sessionKey,
-      pollTimeoutSeconds,
-      startTime,
-    );
+    const completion = await waitForWorkerCompletion(sessionKey, startTime);
 
     if (!completion.success) {
       console.error(`[${new Date().toISOString()}] Worker failed`);

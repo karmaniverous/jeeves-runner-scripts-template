@@ -62,7 +62,6 @@ runScript('admin/refresh-token-rates', () => {
     {
       jobId: JOB_ID,
       thinking: 'low',
-      timeout: 300,
     },
     SPAWN_WORKER_PATH,
   );
