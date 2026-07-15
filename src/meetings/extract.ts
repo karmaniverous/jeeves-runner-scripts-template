@@ -185,7 +185,23 @@ function loadArchiveMessage(
 }
 
 function main(): void {
-  const accounts = getEmailAccounts();
+  let accounts: string[];
+  try {
+    accounts = getEmailAccounts();
+  } catch {
+    console.log(
+      '[skip] Meeting extraction not configured \u2014 pipeline-config.json missing or invalid',
+    );
+    return;
+  }
+
+  if (accounts.length === 0) {
+    console.log(
+      '[skip] Meeting extraction not configured \u2014 no email accounts with emailPolling enabled',
+    );
+    return;
+  }
+
   const client = getRunnerClient();
 
   let scanned = 0,
