@@ -225,16 +225,28 @@ function writeMessage(
   if (msg.bot_id) doc.botId = msg.bot_id;
   if (msg.files && msg.files.length > 0) {
     doc.hasFiles = true;
-    doc.files = msg.files.map(
-      (f: SlackFileMetadata) =>
-        ({
-          id: f.id,
-          name: f.name,
-          filetype: f.filetype,
-          mimetype: f.mimetype,
-          ...(f.size != null ? { size: f.size } : {}),
-        }) satisfies SlackFileMetadata,
-    );
+    doc.files = msg.files.map((f: SlackFileMetadata) => {
+      const entry: SlackFileMetadata = {
+        id: f.id,
+        name: f.name,
+        filetype: f.filetype,
+        mimetype: f.mimetype,
+        ...(f.size != null ? { size: f.size } : {}),
+      };
+
+      // Persist voice memo / audio transcripts from Slack's native transcription
+      const raw = f as unknown as Record<string, unknown>;
+      const transcription = raw['transcription'] as
+        { status?: string; preview?: { content?: string } } | undefined;
+      if (
+        transcription?.status === 'complete' &&
+        transcription.preview?.content
+      ) {
+        entry.transcript = transcription.preview.content;
+      }
+
+      return entry;
+    });
   }
   if (msg.reactions)
     doc.reactions = msg.reactions.map((r) => ({

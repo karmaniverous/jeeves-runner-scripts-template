@@ -62,6 +62,8 @@ export interface SlackFileMetadata {
   mimetype: string;
   /** File size in bytes. */
   size?: number;
+  /** Transcript text for audio files with Slack-provided transcription. */
+  transcript?: string;
 }
 
 export interface SlackMessage {
