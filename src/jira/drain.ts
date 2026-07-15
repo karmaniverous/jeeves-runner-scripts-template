@@ -25,8 +25,8 @@ import path from 'node:path';
 import { nowIso, runScript } from '@karmaniverous/jeeves';
 
 import { JIRA_FIELDS_FILENAME, JIRA_MAX_HISTORY } from '../lib/constants.js';
+import { deleteEntity, upsertEntity } from '../lib/entity-store.js';
 import { getBasePathForJira } from '../lib/silo-router.js';
-import { deleteEntity, upsertEntity } from './lib/entity-store.js';
 
 const DOMAIN_DIR = path.join(getBasePathForJira(), 'jira');
 
