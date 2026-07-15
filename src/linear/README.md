@@ -29,8 +29,8 @@ flowchart TD
   drain -->|"IssueLabel create/update"| label["label/{uuid}.json"]
   drain -->|unrecognised| unmatched["_unmatched/ts-action-type.json"]
 
-  sync_i["sync-issues.ts\n(every 11 min)"] -->|"GraphQL /graphql"| issue
-  sync_c["sync-comments.ts\n(every 13 min)"] -->|"GraphQL /graphql"| comment
+  sync_i["sync-issues.ts\n(every 23 min)"] -->|"GraphQL /graphql"| issue
+  sync_c["sync-comments.ts\n(every 29 min)"] -->|"GraphQL /graphql"| comment
 
   backfill["backfill.ts\n(one-time, manual)"] -->|"GraphQL paginate"| issue
 ~~~
@@ -42,8 +42,8 @@ flowchart TD
 | Script | Description |
 |--------|-------------|
 | `drain.ts` | Webhook drain — reads stdin, routes by action + type, persists entity snapshots |
-| `sync-issues.ts` | Polling sync for issues — runner job, every 11 minutes |
-| `sync-comments.ts` | Polling sync for comments — runner job, every 13 minutes |
+| `sync-issues.ts` | Polling sync for issues — runner job, every 23 minutes |
+| `sync-comments.ts` | Polling sync for comments — runner job, every 29 minutes |
 | `backfill.ts` | One-time historical import via GraphQL (`--team KEY [--type issue\|comment] [--live]`) |
 
 Supporting modules in `lib/`:
@@ -51,7 +51,7 @@ Supporting modules in `lib/`:
 | Module | Description |
 |--------|-------------|
 | `lib/linear-client.ts` | `linearQuery`, `paginateIssues`, `paginateComments` — typed GraphQL client |
-| `../jira/lib/entity-store.ts` | `upsertEntity`, `backfillEntity`, `deleteEntity` — file I/O with diff history (shared) |
+| `../lib/entity-store.ts` | `upsertEntity`, `backfillEntity`, `deleteEntity` — file I/O with diff history (shared) |
 
 ## Archive Structure
 
@@ -152,7 +152,7 @@ Type values: `"Issue"`, `"Comment"`, `"Cycle"`, `"Project"`, `"IssueLabel"`
 
 1. In Linear, go to **Settings → API → Webhooks**.
 2. Click **New webhook**.
-3. **URL:** `https://your-jeeves-server.example.com/api/events/linear`
+3. **URL:** `https://your-jeeves-server.example.com/event?key=<event-key>` (all event types share the same endpoint; routing is body-based via schema matching)
 4. **Events:** Select Issue, Comment, Cycle, Project, IssueLabel events.
 5. Optionally add a **Signing secret** — store it as `webhookSecret` in LINEAR_CONFIG_PATH.
 6. Save. Linear immediately starts delivering events.
@@ -165,21 +165,29 @@ Add this block to your jeeves-server Event Gateway configuration:
 
 ~~~jsonc
 {
-  "eventGateway": {
-    "schemas": [
-      {
-        "pattern": "linear",
-        "cmd": ["tsx", "{SCRIPTS_DIR}/src/linear/drain.ts"],
-        "timeoutMs": 10000
-      }
-    ]
+  "events": {
+    "linear": {
+      "schema": {
+        "type": "object",
+        "required": ["action", "type"],
+        "properties": {
+          "action": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      },
+      "cmd": "tsx {SCRIPTS_DIR}/src/linear/drain.ts",
+      "timeoutMs": 10000
+    }
   }
 }
 ~~~
 
 - `{SCRIPTS_DIR}` — absolute path to the scripts repo checkout (from `SCRIPTS_DIR` in `constants.ts`)
-- `pattern` — must match the path segment used in the webhook URL (e.g. `/api/events/linear`)
-- `timeoutMs` — 10 seconds is ample; drain scripts are fast I/O-only operations
+- `schema` — JSON Schema validated against the POST body (ajv, first match wins across all configured events)
+- `cmd` — the server spawns this command and pipes the request body JSON to stdin
+- `timeoutMs` — kill timeout for the drain process (falls back to global `eventTimeoutMs`)
+
+> **Webhook URL:** `POST https://<instance>/event?key=<event-key>` — all event types share the same endpoint; routing is body-based via schema matching. This is the same pattern used by the Jira drain.
 
 ## Polling Sync
 
@@ -187,8 +195,8 @@ The two sync jobs use runner scalar state to track a cursor (ISO timestamp of th
 
 | Job | State namespace | State key | Schedule |
 |-----|----------------|-----------|---------|
-| `sync-issues.ts` | `linear` | `sync-issues-cursor` | Every 11 min |
-| `sync-comments.ts` | `linear` | `sync-comments-cursor` | Every 13 min |
+| `sync-issues.ts` | `linear` | `sync-issues-cursor` | Every 23 min |
+| `sync-comments.ts` | `linear` | `sync-comments-cursor` | Every 29 min |
 
 On first run (no cursor), all issues/comments are fetched from the beginning. On subsequent runs, only entities updated since the last cursor are fetched. Rate-limited at 200 ms between pages.
 
@@ -221,11 +229,11 @@ tsx src/linear/backfill.ts --type comment --live
 
 ## API Client
 
-The GraphQL client in `lib/linear-client.ts` uses Linear's standard GraphQL endpoint with Bearer token authentication. No extra dependencies — uses Node's built-in `fetch`.
+The GraphQL client in `lib/linear-client.ts` uses Linear's standard GraphQL endpoint with plain `Authorization: <key>` header (not Bearer). No extra dependencies — uses Node's built-in `fetch`.
 
 Key differences from the Jira client:
 - **GraphQL** (POST to `config.apiUrl`) instead of REST (GET)
-- **Bearer token** instead of Basic auth
+- **Plain API key** (`Authorization: <key>`, not Bearer) instead of Basic auth
 - **Cursor pagination** (`after: $cursor`, `pageInfo.endCursor`) instead of offset pagination
 - **Human-readable names** everywhere — no field ID translation needed
 - **Markdown bodies** natively — no ADF conversion
@@ -245,11 +253,11 @@ Key differences from the Jira client:
 | File | Purpose |
 |------|---------|
 | `drain.ts` | Webhook drain entry point — stdin pipe from Event Gateway |
-| `sync-issues.ts` | Polling sync for issues (runner job, every 11 min) |
-| `sync-comments.ts` | Polling sync for comments (runner job, every 13 min) |
+| `sync-issues.ts` | Polling sync for issues (runner job, every 23 min) |
+| `sync-comments.ts` | Polling sync for comments (runner job, every 29 min) |
 | `backfill.ts` | One-time historical backfill via GraphQL API |
 | `lib/linear-client.ts` | Typed Linear GraphQL client (fetch, paginate) |
-| `../jira/lib/entity-store.ts` | File I/O helpers with reverse-diff history (shared with Jira) |
+| `../lib/entity-store.ts` | File I/O helpers with reverse-diff history (shared with Jira) |
 | `../../jobs/linear.json` | Runner job manifest (sync-issues, sync-comments schedules) |
 | `../../src/lib/constants.ts` | Linear constants (`LINEAR_CONFIG_PATH`, `LINEAR_MAX_HISTORY`) |
 ~~~~
