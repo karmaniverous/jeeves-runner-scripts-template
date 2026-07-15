@@ -238,6 +238,24 @@ Key differences from the Jira client:
 - **Human-readable names** everywhere — no field ID translation needed
 - **Markdown bodies** natively — no ADF conversion
 
+## Watcher Configuration
+
+Linear entities require watcher inference rules and maps before they appear in semantic search. These are *instance-side* watcher config, not template code.
+
+**Inference rules** (4 required):
+- `linear-issue` — matches `linear/issue/*.json`
+- `linear-comment` — matches `linear/comment/*.json`
+- `linear-cycle` — matches `linear/cycle/*.json`
+- `linear-project` — matches `linear/project/*.json`
+
+**Maps** (2 required):
+- `linear-issue` — extracts issue fields (identifier, title, state, assignee, priority)
+- `linear-comment` — extracts comment fields (body, user, issue reference)
+
+Tracked as [jeeves-tools #99](https://github.com/karmaniverous/jeeves-tools/issues/99).
+
+**Meta autoSeed** entries for automatic `.meta/` directory creation on new Linear entities are tracked as [jeeves-tools #98](https://github.com/karmaniverous/jeeves-tools/issues/98).
+
 ## Prerequisites
 
 | Prerequisite | Where to configure |
@@ -247,6 +265,8 @@ Key differences from the Jira client:
 | Config file format | `{ "apiKey": "lin_api_...", "apiUrl": "https://api.linear.app/graphql" }` |
 | Linear webhook configured to POST to jeeves-server | Linear Settings → API → Webhooks |
 | jeeves-server Event Gateway configured with `linear` schema | `jeeves-server` config (see Event Gateway Config above) |
+| Watcher inference rules + maps for Linear entities | Instance watcher config ([jeeves-tools #99](https://github.com/karmaniverous/jeeves-tools/issues/99)) |
+| Meta autoSeed entries for Linear entity discovery | Instance meta config ([jeeves-tools #98](https://github.com/karmaniverous/jeeves-tools/issues/98)) |
 
 ## Key Files
 

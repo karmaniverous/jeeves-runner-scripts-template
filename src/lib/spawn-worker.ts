@@ -340,21 +340,16 @@ async function invokeGateway(
 // ── Session helpers ───────────────────────────────────────────────────
 
 function getSessionsDir(): string {
-  const configCandidates = [
-    path.join('D:', '.clawdbot'),
-    path.join(process.env['USERPROFILE'] ?? '', '.clawdbot'),
+  const home = process.env['USERPROFILE'] ?? os.homedir();
+  const configDirs = [
+    path.join(home, '.openclaw'),
+    path.join(home, '.clawdbot'),
   ];
-  for (const dir of configCandidates) {
+  for (const dir of configDirs) {
     const sessDir = path.join(dir, 'agents', 'main', 'sessions');
     if (fs.existsSync(sessDir)) return sessDir;
   }
-  return path.join(
-    process.env['USERPROFILE'] ?? '',
-    '.clawdbot',
-    'agents',
-    'main',
-    'sessions',
-  );
+  return path.join(home, '.openclaw', 'agents', 'main', 'sessions');
 }
 
 async function getSessionInfo(
