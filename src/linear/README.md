@@ -1,4 +1,3 @@
-~~~~markdown
 # linear/
 
 Linear webhook drain, polling sync, and one-time backfill.
@@ -280,4 +279,3 @@ Tracked as [jeeves-tools #99](https://github.com/karmaniverous/jeeves-tools/issu
 | `../lib/entity-store.ts` | File I/O helpers with reverse-diff history (shared with Jira) |
 | `../../jobs/linear.json` | Runner job manifest (sync-issues, sync-comments schedules) |
 | `../../src/lib/constants.ts` | Linear constants (`LINEAR_CONFIG_PATH`, `LINEAR_MAX_HISTORY`) |
-~~~~

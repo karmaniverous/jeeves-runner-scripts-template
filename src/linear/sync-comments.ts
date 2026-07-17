@@ -8,7 +8,7 @@
  * updated since that timestamp via the Linear GraphQL API, and upserts
  * each comment into the local archive with reverse-diff history.
  *
- * Scheduled via `jobs/linear.json` (every 13 minutes). Can also be
+ * Scheduled via `jobs/linear.json` (every 29 minutes). Can also be
  * run manually: `tsx src/linear/sync-comments.ts`
  */
 

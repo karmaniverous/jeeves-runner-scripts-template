@@ -3,7 +3,7 @@
  *
  * Minimal typed GraphQL client for the Linear API.
  *
- * Handles config loading and typed POST requests using Bearer token auth.
+ * Handles config loading and typed POST requests using plain API key auth.
  * Node's built-in fetch (v18+) is used — no extra dependencies.
  */
 
@@ -52,7 +52,20 @@ export interface LinearConfig {
 /** Read and parse LINEAR_CONFIG_PATH. Throws if missing or malformed. */
 export function loadConfig(): LinearConfig {
   const raw = fs.readFileSync(LINEAR_CONFIG_PATH, 'utf8');
-  return JSON.parse(raw) as LinearConfig;
+  const parsed: unknown = JSON.parse(raw);
+
+  if (
+    typeof parsed !== 'object' ||
+    parsed === null ||
+    typeof (parsed as Record<string, unknown>).apiKey !== 'string' ||
+    typeof (parsed as Record<string, unknown>).apiUrl !== 'string'
+  ) {
+    throw new Error(
+      `Invalid Linear config at ${LINEAR_CONFIG_PATH}: must contain string apiKey and apiUrl`,
+    );
+  }
+
+  return parsed as LinearConfig;
 }
 
 // ---------------------------------------------------------------------------

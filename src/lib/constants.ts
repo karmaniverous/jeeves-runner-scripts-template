@@ -241,7 +241,8 @@ export const JIRA_DIR = path.join(CONTENT_DIR, 'jira');
  * Path to Linear API config file (JSON with apiKey, apiUrl, webhookSecret).
  * Auth: plain `Authorization: <key>` header (not Bearer).
  */
-export const LINEAR_CONFIG_PATH: string = '';
+export const LINEAR_CONFIG_PATH: string =
+  process.env.LINEAR_CONFIG_PATH || path.join(CREDENTIALS_DIR, 'linear.json');
 
 /**
  * Maximum number of history entries per Linear entity file.
