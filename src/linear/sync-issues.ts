@@ -20,16 +20,12 @@ import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 import { LINEAR_CONFIG_PATH, LINEAR_MAX_HISTORY } from '../lib/constants.js';
 import { upsertEntity } from '../lib/entity-store.js';
 import { getBasePathForLinear } from '../lib/silo-router.js';
-import { loadConfig, paginateIssues } from './lib/linear-client.js';
+import { loadConfig, paginateIssues, sleepMs } from './lib/linear-client.js';
 
 const DOMAIN_DIR = path.join(getBasePathForLinear(), 'linear');
 const RATE_LIMIT_MS = 200;
 const STATE_NS = 'linear';
 const STATE_KEY = 'sync-issues-cursor';
-
-function sleepMs(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 async function main(): Promise<void> {
   let config;

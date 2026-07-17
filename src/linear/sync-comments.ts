@@ -20,16 +20,17 @@ import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 import { LINEAR_CONFIG_PATH, LINEAR_MAX_HISTORY } from '../lib/constants.js';
 import { upsertEntity } from '../lib/entity-store.js';
 import { getBasePathForLinear } from '../lib/silo-router.js';
-import { loadConfig, paginateComments } from './lib/linear-client.js';
+import {
+  enrichComment,
+  loadConfig,
+  paginateComments,
+  sleepMs,
+} from './lib/linear-client.js';
 
 const DOMAIN_DIR = path.join(getBasePathForLinear(), 'linear');
 const RATE_LIMIT_MS = 200;
 const STATE_NS = 'linear';
 const STATE_KEY = 'sync-comments-cursor';
-
-function sleepMs(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 async function main(): Promise<void> {
   let config;
@@ -62,11 +63,7 @@ async function main(): Promise<void> {
       }
 
       try {
-        const current: Record<string, unknown> = { ...comment };
-        const issueObj = comment.issue as Record<string, unknown> | undefined;
-        if (issueObj?.identifier) {
-          current._issueIdentifier = issueObj.identifier;
-        }
+        const current = enrichComment(comment);
 
         const now = nowIso();
         upsertEntity(

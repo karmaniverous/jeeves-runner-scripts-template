@@ -12,6 +12,30 @@ import fs from 'node:fs';
 import { LINEAR_CONFIG_PATH } from '../../lib/constants.js';
 
 // ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+/** Delay helper for rate limiting between API calls. */
+export function sleepMs(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Enrich a raw Linear comment with `_issueIdentifier` cross-reference.
+ * Returns a shallow copy with the enrichment applied.
+ */
+export function enrichComment(
+  raw: Record<string, unknown>,
+): Record<string, unknown> {
+  const current: Record<string, unknown> = { ...raw };
+  const issueObj = raw.issue as Record<string, unknown> | undefined;
+  if (issueObj?.identifier) {
+    current._issueIdentifier = issueObj.identifier;
+  }
+  return current;
+}
+
+// ---------------------------------------------------------------------------
 // Public types
 // ---------------------------------------------------------------------------
 

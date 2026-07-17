@@ -26,9 +26,11 @@ import { LINEAR_CONFIG_PATH } from '../lib/constants.js';
 import { backfillEntity } from '../lib/entity-store.js';
 import { getBasePathForLinear } from '../lib/silo-router.js';
 import {
+  enrichComment,
   loadConfig,
   paginateComments,
   paginateIssues,
+  sleepMs,
 } from './lib/linear-client.js';
 
 const DOMAIN_DIR = path.join(getBasePathForLinear(), 'linear');
@@ -36,10 +38,6 @@ const RATE_LIMIT_MS = 200;
 
 function hasFlag(args: string[], flag: string): boolean {
   return args.includes(flag);
-}
-
-function sleepMs(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // ---------------------------------------------------------------------------
@@ -119,11 +117,7 @@ async function backfillComments(
     }
 
     try {
-      const current: Record<string, unknown> = { ...comment };
-      const issueObj = comment.issue as Record<string, unknown> | undefined;
-      if (issueObj?.identifier) {
-        current._issueIdentifier = issueObj.identifier;
-      }
+      const current = enrichComment(comment);
 
       if (live) {
         const written = backfillEntity(DOMAIN_DIR, 'comment', id, current, now);

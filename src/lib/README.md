@@ -81,6 +81,7 @@ Multi-tenant data routing by email domain, GitHub org, and Slack workspace. Depe
 - `getBasePathForSlackWorkspace(teamId)` — resolve Slack workspace to base path
 - `getBasePathForMeeting(participantEmails)` — resolve meeting to base path via majority-voting on participant email domains
 - `getBasePathForJira()` — resolve Jira base path from silo routing config
+- `getBasePathForLinear()` — resolve Linear base path from silo routing config
 - `getEntityDirs(subdir)` — deduplicated list of entity root directories across all silos
 - `getEmailBaseForAccount(account)` / `getCalendarBaseForAccount(account)` — per-account path helpers
 
@@ -97,6 +98,30 @@ Usage: `echo "task" | tsx spawn-worker.ts --job-id=<id> [--label=<label>] [--thi
 - Waits for transcript to flush
 - Outputs `WORKER_RESULT:{"sessionKey":"...","tokens":12345,"durationMs":123000}` on last stdout line
 - Implements retry with exponential backoff (3 retries, 30s base)
+
+### entity-store.ts
+
+Shared entity persistence — upsert, backfill, and delete entity files with reverse-diff history using `fast-json-patch`. Used by any domain that persists structured entities (Jira, Linear, etc.).
+
+- `upsertEntity(domainDir, type, key, current, now, maxHistory)` — create or update entity file with reverse-diff history; returns file path
+- `backfillEntity(domainDir, type, key, current, now)` — write entity file only if it doesn't exist (historical import); returns path or null
+- `deleteEntity(domainDir, type, key)` — delete entity file; returns boolean
+- `writeUnmatched(domainDir, label, body)` — write unrecognised webhook payload to `_unmatched/` subdirectory
+- `readStdinJson()` — read stdin to completion and parse as JSON; used by Event Gateway drain scripts
+
+Entity file structure:
+
+```json
+{
+  "entityType": "issue",
+  "entityKey": "CRE-1",
+  "current": { ... },
+  "history": [{ "ts": "...", "patch": [...] }],
+  "meta": { "firstSeen": "...", "lastWebhook": "...", "lastBackfill": null, "version": 7 }
+}
+```
+
+History entries are reverse-diff patches (JSON Patch format) — apply newest-to-oldest to reconstruct prior states.
 
 ## Configuration Files
 
@@ -178,6 +203,7 @@ Loaded and validated by `silo-router.ts`. Routes pipeline output to the correct 
       "githubOrgs": ["acme-corp", { "githubOrg": "acme-oss", "relativePath": "oss" }],
       "slackWorkspaces": ["T0ABC123"],
       "jira": true,
+      "linear": true,
       "basePath": "/opt/jeeves/content/acme"
     }
   }
@@ -192,4 +218,5 @@ Loaded and validated by `silo-router.ts`. Routes pipeline output to the correct 
   - `githubOrgs` — GitHub orgs for this tenant. Plain strings use the silo's `basePath` directly; objects with `{ "githubOrg": "...", "relativePath": "..." }` append a relative subdirectory.
   - `slackWorkspaces` — Slack team IDs (e.g., `T0ABC123`) for this tenant.
   - `jira` — When `true`, Jira content for this instance routes to this silo.
+  - `linear` — When `true`, Linear content for this instance routes to this silo.
   - `basePath` — Absolute base path for all content routed to this silo.

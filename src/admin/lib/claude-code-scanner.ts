@@ -26,7 +26,10 @@ const PROJECT_CHANNEL_MAP: Record<string, { key: string; name: string }> = {};
  * Directory names look like `D--repos-myorg-my-project`.
  * We extract a human-readable project name and prefix with `cc:`.
  */
-function projectToChannel(dirName: string): { key: string; name: string } {
+export function projectToChannel(dirName: string): {
+  key: string;
+  name: string;
+} {
   if (dirName in PROJECT_CHANNEL_MAP) return PROJECT_CHANNEL_MAP[dirName];
 
   // Strip drive prefix and common container directories

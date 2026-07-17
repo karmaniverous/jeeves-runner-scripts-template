@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseCCLine } from './claude-code-scanner.js';
+import { parseCCLine, projectToChannel } from './claude-code-scanner.js';
 
 describe('claude-code-scanner', () => {
   describe('parseCCLine', () => {
@@ -188,6 +188,39 @@ describe('claude-code-scanner', () => {
         cacheRead: 0,
         cacheWrite: 0,
       });
+    });
+  });
+});
+
+describe('projectToChannel', () => {
+  it('strips D--repos- prefix', () => {
+    const result = projectToChannel('D--repos-myorg-my-project');
+    expect(result).toEqual({
+      key: 'cc:myorg-my-project',
+      name: 'CC: myorg-my-project',
+    });
+  });
+
+  it('strips drive letter and repos container', () => {
+    const result = projectToChannel('C--repos-acme-widget');
+    expect(result).toEqual({ key: 'cc:acme-widget', name: 'CC: acme-widget' });
+  });
+
+  it('strips drive letter and projects container', () => {
+    const result = projectToChannel('D--projects-my-app');
+    expect(result).toEqual({ key: 'cc:my-app', name: 'CC: my-app' });
+  });
+
+  it('strips bare drive letter prefix', () => {
+    const result = projectToChannel('J--jeeves');
+    expect(result).toEqual({ key: 'cc:jeeves', name: 'CC: jeeves' });
+  });
+
+  it('preserves name without drive prefix', () => {
+    const result = projectToChannel('some-project');
+    expect(result).toEqual({
+      key: 'cc:some-project',
+      name: 'CC: some-project',
     });
   });
 });

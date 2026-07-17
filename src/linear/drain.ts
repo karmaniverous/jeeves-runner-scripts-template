@@ -19,30 +19,21 @@
  * Unrecognised events are written to `{domainDir}/_unmatched/`.
  */
 
-import fs from 'node:fs';
 import path from 'node:path';
 
 import { nowIso, runScript } from '@karmaniverous/jeeves';
 
 import { LINEAR_MAX_HISTORY } from '../lib/constants.js';
-import { deleteEntity, upsertEntity } from '../lib/entity-store.js';
+import {
+  deleteEntity,
+  readStdinJson,
+  upsertEntity,
+  writeUnmatched,
+} from '../lib/entity-store.js';
 import { getBasePathForLinear } from '../lib/silo-router.js';
+import { enrichComment } from './lib/linear-client.js';
 
 const DOMAIN_DIR = path.join(getBasePathForLinear(), 'linear');
-
-// ---------------------------------------------------------------------------
-// Unmatched event sink
-// ---------------------------------------------------------------------------
-
-function writeUnmatched(label: string, body: unknown): void {
-  const dir = path.join(DOMAIN_DIR, '_unmatched');
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(
-    path.join(dir, `${String(Date.now())}-${label}.json`),
-    JSON.stringify(body, null, 2) + '\n',
-    'utf8',
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Result type
@@ -72,14 +63,7 @@ type DrainResult =
 // ---------------------------------------------------------------------------
 
 async function drainMain(): Promise<void> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk as Buffer);
-  }
-  const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<
-    string,
-    unknown
-  >;
+  const body = await readStdinJson();
 
   const action = body.action as string | undefined;
   const type = body.type as string | undefined;
@@ -146,11 +130,7 @@ async function drainMain(): Promise<void> {
         deleted,
       };
     } else {
-      const current: Record<string, unknown> = { ...data };
-      const issueObj = data?.issue as Record<string, unknown> | undefined;
-      if (issueObj?.identifier) {
-        current._issueIdentifier = issueObj.identifier;
-      }
+      const current = enrichComment(data as Record<string, unknown>);
       const p = upsertEntity(
         DOMAIN_DIR,
         'comment',
@@ -236,7 +216,7 @@ async function drainMain(): Promise<void> {
     };
   } else {
     const label = `${action}-${type}`;
-    writeUnmatched(label, body);
+    writeUnmatched(DOMAIN_DIR, label, body);
     result = { action, type, entityAction: 'unmatched' };
   }
 

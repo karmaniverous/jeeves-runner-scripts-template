@@ -44,7 +44,8 @@ Runner job manifests live in `jobs/` (one JSON file per domain). Scripts are org
 | `email/` | Gmail polling, download, triage, classification | [README](src/email/README.md) |
 | `github/` | Repo sync, issue sync, notifications, collaborator management | [README](src/github/README.md) |
 | `jira/` | Jira webhook drain, backfill, field metadata refresh | [README](src/jira/README.md) |
-| `lib/` | Shared infrastructure (constants, dates, email parsing, CLI wrappers) | [README](src/lib/README.md) |
+| `linear/` | Linear webhook drain, polling sync, backfill | [README](src/linear/README.md) |
+| `lib/` | Shared infrastructure (constants, entity persistence, silo routing, CLI wrappers) | [README](src/lib/README.md) |
 | `meetings/` | Meeting extraction (Google Meet, Fathom, Notion) | [README](src/meetings/README.md) |
 | `meta/` | Entity lifecycle maintenance | [README](src/meta/README.md) |
 | `slack/` | Slack message polling | [README](src/slack/README.md) |
@@ -90,11 +91,11 @@ import { runDispatcher } from '@karmaniverous/jeeves-runner';
 import { SPAWN_WORKER_PATH } from '../lib/constants.js';
 
 runScript('domain/my-dispatcher', () => {
-  runDispatcher(task, { jobId: 'my-dispatcher', timeout: 300 }, SPAWN_WORKER_PATH);
+  runDispatcher(task, { jobId: 'my-dispatcher', thinking: 'low' }, SPAWN_WORKER_PATH);
 });
 ```
 
-For file-based task dispatchers, use `taskFileDispatcher()` from `dispatchers/lib/`.
+For file-based task dispatchers, see the `daily-digest.ts` example in `dispatchers/README.md`.
 
 ### Prerequisite Guard
 
