@@ -25,8 +25,13 @@ import path from 'node:path';
 import { nowIso, runScript } from '@karmaniverous/jeeves';
 
 import { JIRA_FIELDS_FILENAME, JIRA_MAX_HISTORY } from '../lib/constants.js';
+import {
+  deleteEntity,
+  readStdinJson,
+  upsertEntity,
+  writeUnmatched,
+} from '../lib/entity-store.js';
 import { getBasePathForJira } from '../lib/silo-router.js';
-import { deleteEntity, upsertEntity } from './lib/entity-store.js';
 
 const DOMAIN_DIR = path.join(getBasePathForJira(), 'jira');
 
@@ -62,20 +67,6 @@ function translateCustomFields(
     }
   }
   return out;
-}
-
-// ---------------------------------------------------------------------------
-// Unmatched event sink
-// ---------------------------------------------------------------------------
-
-function writeUnmatched(event: string, body: unknown): void {
-  const dir = path.join(DOMAIN_DIR, '_unmatched');
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(
-    path.join(dir, `${String(Date.now())}-${event}.json`),
-    JSON.stringify(body, null, 2) + '\n',
-    'utf8',
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -135,14 +126,7 @@ function routeUpsertDelete(
 // ---------------------------------------------------------------------------
 
 async function drainMain(): Promise<void> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk as Buffer);
-  }
-  const body = JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<
-    string,
-    unknown
-  >;
+  const body = await readStdinJson();
 
   const event = body.webhookEvent as string | undefined;
   if (!event) {
@@ -240,7 +224,7 @@ async function drainMain(): Promise<void> {
       now,
     );
   } else {
-    writeUnmatched(event, body);
+    writeUnmatched(DOMAIN_DIR, event, body);
     result = { event, action: 'unmatched' };
   }
 

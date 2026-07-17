@@ -169,8 +169,7 @@ export function scanAllSessions(
     }
 
     const cursor = ccCursors[ccFile.cursorKey] as
-      | CursorState[string]
-      | undefined;
+      CursorState[string] | undefined;
     if (cursor?.byteOffset !== undefined && cursor.byteOffset >= stat.size) {
       ccSkipped++;
       continue;

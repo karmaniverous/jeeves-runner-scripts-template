@@ -1,10 +1,10 @@
 /**
  * @module entity-store
  *
- * Entity persistence helpers for the Jira domain — upsert and delete
- * entity files with reverse-diff history using fast-json-patch.
+ * Shared entity persistence — upsert, backfill, and delete entity files
+ * with reverse-diff history using fast-json-patch.
  *
- * Used by drain.ts (webhook path) and backfill.ts (REST API path).
+ * Used by any domain that persists structured entities (Jira, Linear, etc.).
  * Callers supply the domain directory, entity type, key, and current
  * snapshot; this module handles file I/O and history management.
  */
@@ -175,4 +175,37 @@ export function deleteEntity(
     return true;
   }
   return false;
+}
+
+/**
+ * Write an unrecognised webhook payload to the `_unmatched/` subdirectory
+ * of the given domain directory for later inspection.
+ */
+export function writeUnmatched(
+  domainDir: string,
+  label: string,
+  body: unknown,
+): void {
+  const dir = path.join(domainDir, '_unmatched');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(
+    path.join(dir, `${String(Date.now())}-${label}.json`),
+    JSON.stringify(body, null, 2) + '\n',
+    'utf8',
+  );
+}
+
+/**
+ * Read all of stdin and parse as JSON. Used by Event Gateway drain scripts
+ * that receive webhook payloads piped from jeeves-server.
+ */
+export async function readStdinJson(): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(chunk as Buffer);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8')) as Record<
+    string,
+    unknown
+  >;
 }

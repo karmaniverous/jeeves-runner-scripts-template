@@ -119,7 +119,10 @@ export function detectChannel(lines: string[]): ChannelResult {
     // Detect meta synthesis phase from H1 headers or session labels
     const metaPhase = detectMetaPhase(text);
     if (metaPhase) return metaPhase;
-    if (text.includes('jeeves-meta-synthesis')) {
+    if (
+      text.includes('jeeves-meta-synthesis') ||
+      /jeeves-meta[/\\]output-/.test(text)
+    ) {
       return { key: 'meta-synthesis', name: 'Meta Synthesis' };
     }
     const chanRef = extractSlackChannel(text);
@@ -134,8 +137,7 @@ export function detectChannel(lines: string[]): ChannelResult {
 
   // Meta synthesis worker output or recovery sessions.
   if (
-    text.includes('C:\\Windows\\TEMP\\jeeves-meta\\output-') ||
-    text.includes('C:\\Windows\\TEMP\\jeeves-meta/output-') ||
+    /jeeves-meta[/\\]output-/.test(text) ||
     text.includes('jeeves-meta-dev') ||
     text.includes('Write output JSON file with the brief and return its path')
   ) {
@@ -214,7 +216,7 @@ export function detectChannel(lines: string[]): ChannelResult {
  * 1. taskName= or taskName: patterns
  * 2. label= or label: with quoted string
  * 3. Slack channel ID refs <#CXXX|name>
- * 4. Repo references D:\repos\{org}\{repo} or D:/repos/{org}/{repo}
+ * 4. Repo references {drive}:\repos\{org}\{repo} or /repos/{org}/{repo}
  * 5. First H1 header (skip generic dispatcher prompts)
  * 6. Spec references {name}/spec.md
  */

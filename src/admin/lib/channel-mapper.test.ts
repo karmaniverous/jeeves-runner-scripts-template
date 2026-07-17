@@ -166,4 +166,14 @@ describe('detectChannel', () => {
     const result = detectChannel(lines);
     expect(result.key).toBe('slack:channel:#project-test');
   });
+
+  it('detects meta-synthesis from Linux-style temp paths', () => {
+    const lines = [
+      '{"type":"session","id":"abc"}',
+      '{"type":"message","message":{"role":"user","content":[{"type":"text","text":"[Subagent Context]\\n[Subagent Task]: Write to /tmp/jeeves-meta/output-abc123.json"}]}}',
+    ];
+    const result = detectChannel(lines);
+    expect(result.key).toBe('meta-synthesis');
+    expect(result.name).toBe('Meta Synthesis');
+  });
 });

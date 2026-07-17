@@ -26,16 +26,17 @@ const PROJECT_CHANNEL_MAP: Record<string, { key: string; name: string }> = {};
  * Directory names look like `D--repos-myorg-my-project`.
  * We extract a human-readable project name and prefix with `cc:`.
  */
-function projectToChannel(dirName: string): { key: string; name: string } {
+export function projectToChannel(dirName: string): {
+  key: string;
+  name: string;
+} {
   if (dirName in PROJECT_CHANNEL_MAP) return PROJECT_CHANNEL_MAP[dirName];
 
-  // Strip drive prefix (e.g. D--repos-myorg-my-project → myorg-my-project).
+  // Strip drive prefix and common container directories
+  // (e.g. D--repos-myorg-my-project → myorg-my-project, J--jeeves → jeeves).
   // We keep the full remaining name including the org segment because
   // org-project boundary is ambiguous for hyphenated org names.
-  let name = dirName.replace(/^[A-Z]--repos-/, '');
-
-  // Special case: the J--jeeves workspace
-  if (dirName === 'J--jeeves') name = 'jeeves-workspace';
+  const name = dirName.replace(/^[A-Z]--(?:repos-|projects-)?/, '');
 
   const result = { key: `cc:${name}`, name: `CC: ${name}` };
   PROJECT_CHANNEL_MAP[dirName] = result;

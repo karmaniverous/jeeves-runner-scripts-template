@@ -79,7 +79,6 @@ runScript('dispatchers/social-posts', () => {
     {
       jobId: JOB_ID,
       thinking: 'low',
-      timeout: 600,
     },
     SPAWN_WORKER_PATH,
   );

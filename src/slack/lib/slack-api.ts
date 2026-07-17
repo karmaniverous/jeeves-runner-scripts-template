@@ -50,6 +50,24 @@ export function slackApi(
   });
 }
 
+/** Structured metadata for a Slack file attachment. */
+export interface SlackFileMetadata {
+  /** Slack file ID (e.g. "F0ABC123"). */
+  id: string;
+  /** Filename. */
+  name: string;
+  /** Slack's type classification ("png", "canvas", "text", "post", "pdf"). */
+  filetype: string;
+  /** MIME type. */
+  mimetype: string;
+  /** File size in bytes. */
+  size?: number;
+  /** Transcript text for audio files with Slack-provided transcription. */
+  transcript?: string;
+  /** Markdown/text content for text-extractable attachments. */
+  markdown?: string;
+}
+
 export interface SlackMessage {
   ts: string;
   user?: string;
@@ -59,7 +77,7 @@ export interface SlackMessage {
   thread_ts?: string;
   reply_count?: number;
   subtype?: string;
-  files?: unknown[];
+  files?: SlackFileMetadata[];
   reactions?: Array<{ name: string; count: number }>;
 }
 

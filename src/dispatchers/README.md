@@ -24,79 +24,70 @@ To activate a dispatcher:
 
 ### Static Task Dispatcher (reads a TASK.md file)
 
+Pattern from `daily-digest.ts` — read a standing-order Markdown file and dispatch it:
+
 ```typescript
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { CONTENT_DIR } from '../lib/constants.js';
-import { taskFileDispatcher } from './lib/task-file-dispatcher.js';
+import { runScript } from '@karmaniverous/jeeves';
+import { runDispatcher } from '@karmaniverous/jeeves-runner';
+
+import { CONTENT_DIR, SPAWN_WORKER_PATH } from '../lib/constants.js';
 
 const taskFile = path.join(CONTENT_DIR, 'my-domain/TASK.md');
 
-if (!fs.existsSync(taskFile)) {
-  console.log(`[skip] Not configured — create ${taskFile}`);
-  process.exit(0);
-}
+runScript('dispatchers/my-dispatcher', () => {
+  if (!fs.existsSync(taskFile)) {
+    console.log(`[skip] Not configured — create ${taskFile}`);
+    return;
+  }
 
-taskFileDispatcher({
-  scriptName: 'dispatchers/my-dispatcher',
-  jobId: 'my-dispatcher-job',
-  taskFile,
-  thinking: 'low',
-  timeout: 600,
-  injectDateContext: true,
+  const task = fs.readFileSync(taskFile, 'utf8');
+
+  runDispatcher(
+    task,
+    { jobId: 'my-dispatcher-job', thinking: 'low' },
+    SPAWN_WORKER_PATH,
+  );
 });
 ```
 
 ### Dynamic Task Dispatcher (builds task at runtime)
+
+Pattern from `social-posts.ts` — build task text from pipeline-config refs:
 
 ```typescript
 import { runScript } from '@karmaniverous/jeeves';
 import { runDispatcher } from '@karmaniverous/jeeves-runner';
 
 import { SPAWN_WORKER_PATH } from '../lib/constants.js';
-import { getRef } from '../lib/pipeline-config.js';
-
-// getRef() throws when a key is missing — use a safe wrapper for prerequisite checks
-function tryGetRef(key: string): string {
-  try { return getRef(key); } catch { return ''; }
-}
-
-function buildTask(): string {
-  const channel = tryGetRef('slack.myChannel');
-  if (!channel) throw new Error('Missing slack.myChannel in pipeline-config');
-  return `Do the work. Post results to ${channel}.`;
-}
+import { tryGetRef } from '../lib/pipeline-config.js';
 
 runScript('dispatchers/my-dispatcher', () => {
-  if (!tryGetRef('slack.myChannel')) {
+  const channel = tryGetRef('slack.myChannel');
+  if (!channel) {
     console.log('[skip] Not configured — set slack.myChannel in pipeline-config.json');
     return;
   }
-  runDispatcher(buildTask(), { jobId: 'my-job', thinking: 'low', timeout: 600 }, SPAWN_WORKER_PATH);
+
+  const task = `Do the work. Post results to ${channel}.`;
+
+  runDispatcher(task, { jobId: 'my-job', thinking: 'low' }, SPAWN_WORKER_PATH);
 });
 ```
 
-## Task-File-Dispatcher Framework
+### Date Context Injection
 
-The core framework lives in `lib/task-file-dispatcher.ts`. It provides a generic pattern:
+When a dispatcher needs an authoritative date reference (e.g. daily digests), inject it as a quoted block at the top of the task:
 
-1. Read a task definition from a Markdown file (or build one dynamically)
-2. Optionally inject date/timezone context as a quoted block
-3. Wrap execution in `runScript()` for error handling
-4. Delegate to `runDispatcher()` from jeeves-runner with `SPAWN_WORKER_PATH`
-
-### Options
-
-| Option | Type | Description |
-|--------|------|-------------|
-| `taskFile` | `string` | Path to the task Markdown file |
-| `scriptName` | `string` | Script name for `runScript()` crash handler |
-| `jobId` | `string` | Runner job ID for `runDispatcher()` |
-| `thinking` | `string` | Thinking budget level (e.g., `'low'`) |
-| `timeout` | `number` | Session timeout in seconds |
-| `injectDateContext` | `boolean` | Prepend authoritative date/day-of-week context |
-| `dateTimezone` | `string` | IANA timezone for date injection (default: `'Asia/Makassar'`) |
+```typescript
+const tz = 'UTC';
+const now = new Date();
+const dayName = now.toLocaleDateString('en-US', { weekday: 'long', timeZone: tz });
+const dateStr = now.toLocaleDateString('en-CA', { timeZone: tz });
+task = `> **Today is ${dayName}, ${dateStr} (${tz}).** Use this as the authoritative date reference.\n\n` + task;
+```
 
 ## TASK File Anatomy
 
@@ -109,12 +100,6 @@ A TASK file is a Markdown document containing standing orders for an LLM session
 
 Example location: `{CONTENT_DIR}/digest/TASK.md`
 
-When `injectDateContext: true`, the framework prepends:
-
-```
-> **Today is Monday, 2025-05-19 (Asia/Makassar).** Use this as the authoritative date reference...
-```
-
 ## Prerequisites
 
 - Gateway API accessible (`GATEWAY_HOST`, `GATEWAY_PORT`)
@@ -125,7 +110,6 @@ When `injectDateContext: true`, the framework prepends:
 
 | File | Purpose |
 |------|---------|
-| `lib/task-file-dispatcher.ts` | Core framework — reads task file, injects date context, delegates to `runDispatcher()` |
 | `../lib/constants.ts` | Provides `CONTENT_DIR`, `SPAWN_WORKER_PATH` |
-| `../lib/pipeline-config.ts` | Provides `getRef()` for external service IDs |
+| `../lib/pipeline-config.ts` | Provides `getRef()` / `tryGetRef()` for external service IDs |
 | `../lib/spawn-worker.ts` | Gateway session spawner invoked by `runDispatcher()` |

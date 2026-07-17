@@ -27,8 +27,8 @@ import {
   JIRA_EMAIL,
   JIRA_SITE_URL,
 } from '../lib/constants.js';
+import { backfillEntity } from '../lib/entity-store.js';
 import { getBasePathForJira } from '../lib/silo-router.js';
-import { backfillEntity } from './lib/entity-store.js';
 import {
   makeAuthHeader,
   readApiToken,

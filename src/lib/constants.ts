@@ -235,6 +235,26 @@ export const JIRA_MAX_HISTORY = 50;
  */
 export const JIRA_DIR = path.join(CONTENT_DIR, 'jira');
 
+// ========== Linear [OPTIONAL] ==========
+
+/**
+ * Path to Linear API config file (JSON with apiKey, apiUrl, webhookSecret).
+ * Auth: plain `Authorization: <key>` header (not Bearer).
+ */
+export const LINEAR_CONFIG_PATH: string =
+  process.env.LINEAR_CONFIG_PATH || path.join(CREDENTIALS_DIR, 'linear.json');
+
+/**
+ * Maximum number of history entries per Linear entity file.
+ */
+export const LINEAR_MAX_HISTORY = 50;
+
+/**
+ * Root directory for Linear domain output. Multi-tenant paths
+ * resolved via `getBasePathForLinear()` in silo-router.ts.
+ */
+export const LINEAR_DIR = path.join(CONTENT_DIR, 'linear');
+
 // ========== Entity Pipeline [OPTIONAL] ==========
 
 /**
@@ -264,6 +284,11 @@ export const ENTITY_TYPES: EntityTypeConfig[] = [
   },
   {
     subdir: 'jira/issue',
+    rejectionKeys: [],
+    maxAgeDays: null,
+  },
+  {
+    subdir: 'linear/issue',
     rejectionKeys: [],
     maxAgeDays: null,
   },

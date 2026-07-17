@@ -18,23 +18,40 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { CONTENT_DIR } from '../lib/constants.js';
-import { taskFileDispatcher } from './lib/task-file-dispatcher.js';
+import { runScript } from '@karmaniverous/jeeves';
+import { runDispatcher } from '@karmaniverous/jeeves-runner';
+
+import { CONTENT_DIR, SPAWN_WORKER_PATH } from '../lib/constants.js';
 
 const taskFile = path.join(CONTENT_DIR, 'digest/TASK.md');
 
-if (!fs.existsSync(taskFile)) {
-  console.log(
-    `[skip] Daily digest not configured — create ${taskFile} with your digest instructions`,
-  );
-  process.exit(0);
-}
+runScript('dispatchers/daily-digest', () => {
+  if (!fs.existsSync(taskFile)) {
+    console.log(
+      `[skip] Daily digest not configured — create ${taskFile} with your digest instructions`,
+    );
+    return;
+  }
 
-taskFileDispatcher({
-  scriptName: 'dispatchers/daily-digest',
-  jobId: 'generate-daily-digest',
-  taskFile,
-  thinking: 'low',
-  timeout: 600,
-  injectDateContext: true,
+  let task = fs.readFileSync(taskFile, 'utf8');
+
+  const tz = 'UTC';
+  const now = new Date();
+  const dayName = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    timeZone: tz,
+  });
+  const dateStr = now.toLocaleDateString('en-CA', { timeZone: tz });
+  task =
+    `> **Today is ${dayName}, ${dateStr} (${tz}).** Use this as the authoritative date reference for all dates in this report.\n\n` +
+    task;
+
+  runDispatcher(
+    task,
+    {
+      jobId: 'generate-daily-digest',
+      thinking: 'low',
+    },
+    SPAWN_WORKER_PATH,
+  );
 });

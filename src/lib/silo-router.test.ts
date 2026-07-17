@@ -6,6 +6,7 @@ import {
   getBasePathForEmailDomain,
   getBasePathForGitHubOrg,
   getBasePathForJira,
+  getBasePathForLinear,
   getBasePathForMeeting,
   getBasePathForSlackWorkspace,
   getCalendarBaseForAccount,
@@ -33,6 +34,7 @@ const MULTI_SILO_CONFIG = JSON.stringify({
       ],
       slackWorkspaces: ['T111111'],
       jira: true,
+      linear: true,
       basePath: 'C:/content/acme',
     },
     globex: {
@@ -248,6 +250,17 @@ describe('silo-router', () => {
       expect(
         getCalendarBaseForAccount('user@other.org').replace(/\\/g, '/'),
       ).toBe('C:/content/default/calendar');
+    });
+  });
+
+  describe('getBasePathForLinear', () => {
+    it('returns silo path with linear enabled', () => {
+      loadMultiSiloConfig();
+      expect(getBasePathForLinear()).toBe('C:/content/acme');
+    });
+
+    it('returns default when no silo has linear', () => {
+      expect(getBasePathForLinear()).toBe(getConfig().defaultBasePath);
     });
   });
 });

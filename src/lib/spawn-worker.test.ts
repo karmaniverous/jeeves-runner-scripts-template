@@ -5,21 +5,14 @@ import {
   isSessionCompleted,
   parseArgs,
   parseResultLine,
-  SPAWN_BACKOFF_BASE_MS,
-  SPAWN_MAX_RETRIES,
 } from './spawn-worker.js';
 
 describe('parseArgs', () => {
   it('parses --key=value pairs', () => {
-    const result = parseArgs([
-      '--job-id=abc123',
-      '--label=test',
-      '--timeout=60',
-    ]);
+    const result = parseArgs(['--job-id=abc123', '--label=test']);
     expect(result).toEqual({
       'job-id': 'abc123',
       label: 'test',
-      timeout: '60',
     });
   });
 
@@ -128,16 +121,5 @@ describe('parseResultLine', () => {
 describe('getTokensFromTranscript', () => {
   it('returns 0 for non-existent file', () => {
     expect(getTokensFromTranscript('/nonexistent/path.jsonl')).toBe(0);
-  });
-});
-
-describe('spawn retry constants', () => {
-  it('SPAWN_MAX_RETRIES is a positive integer', () => {
-    expect(SPAWN_MAX_RETRIES).toBeGreaterThan(0);
-    expect(Number.isInteger(SPAWN_MAX_RETRIES)).toBe(true);
-  });
-
-  it('SPAWN_BACKOFF_BASE_MS is at least 1 second', () => {
-    expect(SPAWN_BACKOFF_BASE_MS).toBeGreaterThanOrEqual(1000);
   });
 });

@@ -97,8 +97,7 @@ function getOrCreateChannel(
   channel: string,
 ): { models: Record<string, HourlyModelEntry> } {
   const existing = bucket.channels[channel] as
-    | HourlyBucket['channels'][string]
-    | undefined;
+    HourlyBucket['channels'][string] | undefined;
   if (existing) return existing;
   const entry = { models: {} as Record<string, HourlyModelEntry> };
   bucket.channels[channel] = entry;

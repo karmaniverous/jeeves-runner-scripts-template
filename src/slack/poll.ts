@@ -32,6 +32,7 @@ import {
   fetchHistory,
   fetchReplies,
   slackApi,
+  type SlackFileMetadata,
   type SlackMessage,
   sleep,
 } from './lib/slack-api.js';
@@ -39,6 +40,9 @@ import {
 const CHANNELS_FILE = path.join(SCRIPTS_DIR, 'src/slack/lib/channels.json');
 const USERS_FILE = path.join(SCRIPTS_DIR, 'src/slack/lib/users.json');
 const RATE_LIMIT_MS = 1200;
+
+/** File types whose content can be fetched and inlined as text/markdown. */
+const TEXT_EXTRACTABLE_TYPES = new Set(['text', 'post', 'snippet']);
 
 interface ChannelInfo {
   name: string;
@@ -190,6 +194,59 @@ function loadUsers(): Record<string, string> {
   return {};
 }
 
+/**
+ * Fetch text content for extractable file types via Slack's url_private_download.
+ * Mutates file entries in place, adding `markdown` field.
+ * Canvas content requires `canvases:read` scope (jeeves-tools #95) — skipped.
+ */
+async function enrichFileContent(
+  msg: SlackMessage,
+  token: string,
+): Promise<void> {
+  if (!msg.files || msg.files.length === 0) return;
+
+  for (const file of msg.files) {
+    // Skip if already has content (re-poll guard)
+    if (file.markdown) continue;
+
+    if (!TEXT_EXTRACTABLE_TYPES.has(file.filetype)) continue;
+
+    // Fetch file info to get url_private_download
+    try {
+      await sleep(RATE_LIMIT_MS);
+      const info = await slackApi('files.info', { file: file.id }, token);
+      const fileInfo = info.file as Record<string, unknown> | undefined;
+      const downloadUrl = fileInfo?.url_private_download as string | undefined;
+
+      if (!downloadUrl) continue;
+
+      // Fetch the raw content
+      const resp = await fetch(downloadUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) continue;
+
+      let content = await resp.text();
+
+      // Wrap code snippets in fenced code block
+      if (file.filetype === 'snippet') {
+        const lang =
+          (fileInfo?.pretty_type as string | undefined)
+            ?.toLowerCase()
+            .replace(/\s+/g, '') ?? '';
+        content = `\`\`\`${lang}\n${content}\n\`\`\``;
+      }
+
+      file.markdown = content;
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error(
+        `[slack/poll] Failed to fetch content for file ${file.id}: ${errMsg}`,
+      );
+    }
+  }
+}
+
 function writeMessage(
   channelDir: string,
   channelId: string,
@@ -222,7 +279,36 @@ function writeMessage(
   if (msg.reply_count) doc.replyCount = msg.reply_count;
   if (msg.subtype) doc.subtype = msg.subtype;
   if (msg.bot_id) doc.botId = msg.bot_id;
-  if (msg.files) doc.hasFiles = true;
+  if (msg.files && msg.files.length > 0) {
+    doc.hasFiles = true;
+    doc.files = msg.files.map((f: SlackFileMetadata) => {
+      const entry: SlackFileMetadata = {
+        id: f.id,
+        name: f.name,
+        filetype: f.filetype,
+        mimetype: f.mimetype,
+        ...(f.size != null ? { size: f.size } : {}),
+      };
+
+      // Persist voice memo / audio transcripts from Slack's native transcription
+      const raw = f as unknown as Record<string, unknown>;
+      const transcription = raw['transcription'] as
+        { status?: string; preview?: { content?: string } } | undefined;
+      if (
+        transcription?.status === 'complete' &&
+        transcription.preview?.content
+      ) {
+        entry.transcript = transcription.preview.content;
+      }
+
+      // Inline text content fetched during enrichment
+      if (f.markdown) {
+        entry.markdown = f.markdown;
+      }
+
+      return entry;
+    });
+  }
   if (msg.reactions)
     doc.reactions = msg.reactions.map((r) => ({
       name: r.name,
@@ -281,6 +367,10 @@ async function pollChannel(
   let maxTs = newestTs;
 
   for (const msg of messages) {
+    // Enrich text-extractable file attachments before writing
+    if (msg.files && msg.files.length > 0) {
+      await enrichFileContent(msg, token);
+    }
     if (writeMessage(channelDir, channelId, channelInfo, msg, userMap)) {
       written++;
     }
@@ -290,6 +380,9 @@ async function pollChannel(
     if (msg.reply_count && msg.reply_count > 0) {
       const replies = await fetchReplies(channelId, msg.ts, oldest, token);
       for (const reply of replies) {
+        if (reply.files && reply.files.length > 0) {
+          await enrichFileContent(reply, token);
+        }
         if (writeMessage(channelDir, channelId, channelInfo, reply, userMap)) {
           written++;
         }
