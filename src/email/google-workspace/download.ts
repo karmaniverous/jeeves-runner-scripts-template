@@ -28,7 +28,11 @@ import {
 } from '@karmaniverous/jeeves';
 import { getRunnerClient } from '@karmaniverous/jeeves-runner';
 
-import { EMAIL_EVENTS_DIR, GOG_CLIENT_PATH } from '../../lib/constants.js';
+import {
+  EMAIL_EVENTS_DIR,
+  GOG_CLIENT_PATH,
+  GOG_CONFIG_DIR,
+} from '../../lib/constants.js';
 import {
   extractAttachments,
   extractTextFromPayload,
@@ -77,8 +81,16 @@ function downloadMessage(
 }
 
 function main(): void {
-  if (!fs.existsSync(GOG_CLIENT_PATH)) {
-    console.log('[skip] Google OAuth credentials not configured');
+  const hasGogOAuth = fs.existsSync(GOG_CLIENT_PATH);
+  const hasGogServiceAccount =
+    fs.existsSync(path.join(GOG_CONFIG_DIR, 'data')) &&
+    fs
+      .readdirSync(path.join(GOG_CONFIG_DIR, 'data'))
+      .some((f) => f.startsWith('sa-'));
+  if (!hasGogOAuth && !hasGogServiceAccount) {
+    console.log(
+      '[skip] No Google OAuth or service account credentials configured',
+    );
     return;
   }
 
