@@ -11,5 +11,18 @@
     "enabled": true,
     "domain": "jira",
     "prerequisite": "Jira API credentials (JIRA_SITE_URL, JIRA_EMAIL, JIRA_API_TOKEN_PATH in constants.ts)"
+  },
+  {
+    "id": "jira-sort-backlog",
+    "name": "Jira Backlog Priority Sort",
+    "script": "src/jira/sort-backlog.ts",
+    "args": ["--live"],
+    "schedule": { "freq": "daily", "byhour": 0, "byminute": 0, "timezone": "UTC" },
+    "description": "Stable-sort the Jira backlog by priority group (no-priority on top, then Highest \u2192 Lowest). Preserves relative order within each group. Skips epics.",
+    "overlap_policy": "skip",
+    "timeout_seconds": 120,
+    "enabled": true,
+    "domain": "jira",
+    "prerequisite": "Jira API credentials + JIRA_BOARD_ID env var"
   }
 ]

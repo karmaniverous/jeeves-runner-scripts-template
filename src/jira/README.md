@@ -41,6 +41,7 @@ flowchart TD
 | `drain.ts` | Webhook drain — reads stdin, routes by event type, persists entity snapshots |
 | `backfill.ts` | One-time historical import via Jira REST API (`--project KEY [--type issue] [--live]`) |
 | `refresh-fields.ts` | Fetch field metadata and write `_fields.json` (daily runner job) |
+| `sort-backlog.ts` | Stable-sort the Jira backlog by priority group (`--live` to execute, dry-run by default) |
 
 Supporting modules in `lib/`:
 
@@ -205,6 +206,7 @@ tsx src/jira/backfill.ts --project WEB --type issue --live
 | `JIRA_API_TOKEN_PATH` | `src/lib/constants.ts` — path to API token file |
 | Jira webhook configured to POST to jeeves-server | Jira Cloud → Settings → System → WebHooks |
 | jeeves-server Event Gateway configured with `jira` schema | `jeeves-server` config (see Event Gateway Config above) |
+| `JIRA_BOARD_ID` env var | Environment variable — numeric Jira Agile board ID for sort-backlog |
 
 ## Key Files
 
@@ -213,6 +215,7 @@ tsx src/jira/backfill.ts --project WEB --type issue --live
 | `drain.ts` | Webhook drain entry point — stdin pipe from Event Gateway |
 | `backfill.ts` | One-time historical backfill via REST API |
 | `refresh-fields.ts` | Daily custom field metadata refresh |
+| `sort-backlog.ts` | Backlog priority sort — stable re-rank by priority group via Agile API |
 | `../lib/entity-store.ts` | Shared file I/O helpers with reverse-diff history — `upsertEntity`, `backfillEntity`, `deleteEntity`, `writeUnmatched`, `readStdinJson` (see [entity-store docs](../lib/README.md#entity-storets)) |
 | `lib/jira-client.ts` | Typed Jira REST API v3 client (fetch, paginate) |
 | `../../jobs/jira.json` | Runner job manifest (refresh-fields schedule) |
