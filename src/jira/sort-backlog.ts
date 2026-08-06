@@ -1,3 +1,4 @@
+#!/usr/bin/env tsx
 /**
  * @module sort-backlog
  *
@@ -143,8 +144,8 @@ async function fetchBacklog(authHeader: string): Promise<AgileIssue[]> {
 
 function priorityRank(priorityName: string | null): number {
   const idx = PRIORITY_ORDER.indexOf(priorityName);
-  // Unknown priorities sort just before Lowest (conservative)
-  return idx >= 0 ? idx : PRIORITY_ORDER.length - 1;
+  // Unknown priorities sort just before Lowest (between Low and Lowest)
+  return idx >= 0 ? idx : PRIORITY_ORDER.length - 1.5;
 }
 
 function getPriorityName(issue: AgileIssue): string | null {
@@ -239,6 +240,12 @@ async function main(): Promise<void> {
 
   console.log(`\n=== Jira Backlog Priority Sort (${mode}) ===\n`);
 
+  // Guard: skip cleanly if credentials are not configured
+  if (!JIRA_SITE_URL || !JIRA_EMAIL || !JIRA_API_TOKEN_PATH) {
+    console.log('[skip] Jira API credentials not configured');
+    return;
+  }
+
   // Auth
   const apiToken = readApiToken(JIRA_API_TOKEN_PATH);
   const authHeader = makeAuthHeader(JIRA_EMAIL, apiToken);
@@ -278,7 +285,7 @@ async function main(): Promise<void> {
   // Any priorities not in our known list
   for (const [p, c] of counts) {
     if (!PRIORITY_ORDER.includes(p === '(none)' ? null : p)) {
-      console.log(`  ${p}: ${c} (unknown — sorted before Lowest)`);
+      console.log(`  ${p}: ${c} (unknown — sorted just before Lowest)`);
     }
   }
   console.log();
@@ -305,7 +312,7 @@ async function main(): Promise<void> {
     }
   }
   console.log(
-    `${diffCount} of ${currentKeys.length} issues will change position (first diff at rank ${firstDiff}).\n`,
+    `${diffCount} of ${currentKeys.length} issues will change position (first diff at rank ${firstDiff + 1}).\n`,
   );
 
   // 6. Re-rank
